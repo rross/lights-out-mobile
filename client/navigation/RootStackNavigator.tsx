@@ -1,32 +1,52 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import MainTabNavigator from "@/navigation/MainTabNavigator";
-import ModalScreen from "@/screens/ModalScreen";
+import HomeScreen from "@/screens/HomeScreen";
+import LevelSelectScreen from "@/screens/LevelSelectScreen";
+import GameScreen from "@/screens/GameScreen";
+import SettingsScreen from "@/screens/SettingsScreen";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
 
 export type RootStackParamList = {
-  Main: undefined;
-  Modal: undefined;
+  Home: undefined;
+  LevelSelect: undefined;
+  Game: { level: number };
+  Settings: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function RootStackNavigator() {
   const screenOptions = useScreenOptions();
+  const opaqueOptions = useScreenOptions({ transparent: false });
 
   return (
     <Stack.Navigator screenOptions={screenOptions}>
       <Stack.Screen
-        name="Main"
-        component={MainTabNavigator}
+        name="Home"
+        component={HomeScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="Modal"
-        component={ModalScreen}
+        name="LevelSelect"
+        component={LevelSelectScreen}
         options={{
-          presentation: "modal",
-          headerTitle: "Modal",
+          ...opaqueOptions,
+          headerTitle: "Select Level",
+        }}
+      />
+      <Stack.Screen
+        name="Game"
+        component={GameScreen}
+        options={{
+          headerTitle: "",
+        }}
+      />
+      <Stack.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{
+          ...opaqueOptions,
+          headerTitle: "Settings",
         }}
       />
     </Stack.Navigator>
