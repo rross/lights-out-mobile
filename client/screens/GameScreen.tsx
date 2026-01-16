@@ -50,6 +50,35 @@ const CELL_SIZE = (GRID_WIDTH - CELL_GAP * (GRID_SIZE_EXPORT - 1)) / GRID_SIZE_E
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : { r: 0, g: 0, b: 0 };
+}
+
+function rgbToHex(r: number, g: number, b: number): string {
+  return "#" + [r, g, b].map((x) => Math.max(0, Math.min(255, Math.round(x))).toString(16).padStart(2, "0")).join("");
+}
+
+function adjustBrightness(hex: string, percent: number): string {
+  const { r, g, b } = hexToRgb(hex);
+  return rgbToHex(
+    r + (255 - r) * (percent / 100),
+    g + (255 - g) * (percent / 100),
+    b + (255 - b) * (percent / 100)
+  );
+}
+
+function darkenColor(hex: string, percent: number): string {
+  const { r, g, b } = hexToRgb(hex);
+  return rgbToHex(r * (1 - percent / 100), g * (1 - percent / 100), b * (1 - percent / 100));
+}
+
 interface CellProps {
   row: number;
   col: number;
@@ -60,7 +89,10 @@ interface CellProps {
 
 function Cell({ row, col, state, level, onPress }: CellProps) {
   const scale = useSharedValue(1);
-  const color = getColorForState(state, level);
+  const baseColor = getColorForState(state, level);
+  
+  const edgeColor = darkenColor(baseColor, 25);
+  const centerColor = adjustBrightness(baseColor, 20);
 
   function handlePressIn() {
     scale.value = withSpring(0.9, { damping: 15 });
@@ -72,7 +104,6 @@ function Cell({ row, col, state, level, onPress }: CellProps) {
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
-    backgroundColor: color,
   }));
 
   return (
@@ -82,7 +113,15 @@ function Cell({ row, col, state, level, onPress }: CellProps) {
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       testID={`cell-${row}-${col}`}
-    />
+    >
+      <LinearGradient
+        colors={[edgeColor, centerColor, centerColor, edgeColor] as const}
+        locations={[0, 0.3, 0.7, 1]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.cellGradient}
+      />
+    </AnimatedPressable>
   );
 }
 
@@ -372,6 +411,11 @@ const styles = StyleSheet.create({
   cell: {
     width: CELL_SIZE,
     height: CELL_SIZE,
+    borderRadius: 4,
+    overflow: "hidden",
+  },
+  cellGradient: {
+    flex: 1,
     borderRadius: 4,
   },
   resetButton: {
