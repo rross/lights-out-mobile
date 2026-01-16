@@ -44,7 +44,7 @@ type GameRouteProp = RouteProp<RootStackParamList, "Game">;
 
 const { width } = Dimensions.get("window");
 const GRID_PADDING = Spacing.lg;
-const CELL_GAP = 3;
+const CELL_GAP = 1;
 const GRID_WIDTH = width - GRID_PADDING * 2;
 const CELL_SIZE = (GRID_WIDTH - CELL_GAP * (GRID_SIZE_EXPORT - 1)) / GRID_SIZE_EXPORT;
 
@@ -230,7 +230,7 @@ export default function GameScreen() {
           </ThemedText>
         </Animated.View>
 
-        <View style={styles.gridContainer}>
+        <View style={[styles.gridContainer, { backgroundColor: isDark ? "#1a1a1a" : "#2a2a2a" }]}>
           {board.map((row, rowIndex) => (
             <View key={rowIndex} style={styles.row}>
               {row.map((cellState, colIndex) => (
@@ -361,7 +361,8 @@ const styles = StyleSheet.create({
     fontSize: 36,
   },
   gridContainer: {
-    padding: Spacing.xs,
+    padding: 2,
+    borderRadius: BorderRadius.sm,
   },
   row: {
     flexDirection: "row",
@@ -371,7 +372,7 @@ const styles = StyleSheet.create({
   cell: {
     width: CELL_SIZE,
     height: CELL_SIZE,
-    borderRadius: BorderRadius.xs,
+    borderRadius: 4,
   },
   resetButton: {
     position: "absolute",
