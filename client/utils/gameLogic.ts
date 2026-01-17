@@ -92,7 +92,9 @@ export function generateSolvableBoard(level: number): number[][] {
   
   let board = createEmptyBoard();
   
-  const numReverseMoves = Math.max(3, Math.floor(targetMoves * 0.6));
+  const numReverseMoves = targetMoves < 20 
+    ? targetMoves 
+    : Math.ceil(targetMoves * 0.9);
   
   for (let i = 0; i < numReverseMoves; i++) {
     const row = Math.floor(Math.random() * GRID_SIZE);

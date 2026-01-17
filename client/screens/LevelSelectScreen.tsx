@@ -16,7 +16,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { Colors, Spacing, BorderRadius, Fonts, Shadows, GameColors } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
-import { getCompletedLevels, getLevelStars, getCurrentLevel, getSettings } from "@/utils/storage";
+import { getCompletedLevels, getCurrentLevel, getSettings } from "@/utils/storage";
 import { TOTAL_LEVELS, getLevelConfig } from "@/utils/gameLogic";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -33,13 +33,12 @@ interface LevelCardProps {
   level: number;
   isCompleted: boolean;
   isUnlocked: boolean;
-  stars: number;
   stateCount: number;
   onPress: () => void;
   index: number;
 }
 
-function LevelCard({ level, isCompleted, isUnlocked, stars, stateCount, onPress, index }: LevelCardProps) {
+function LevelCard({ level, isCompleted, isUnlocked, stateCount, onPress, index }: LevelCardProps) {
   const { isDark } = useTheme();
   const scale = useSharedValue(1);
 
@@ -87,17 +86,9 @@ function LevelCard({ level, isCompleted, isUnlocked, stars, stateCount, onPress,
             <ThemedText style={[styles.levelNumber, { fontFamily: Fonts.displaySemiBold }]}>
               {level}
             </ThemedText>
-            {isCompleted && stars > 0 ? (
-              <View style={styles.starsContainer}>
-                {[1, 2, 3].map((s) => (
-                  <Feather
-                    key={s}
-                    name="star"
-                    size={10}
-                    color={s <= stars ? "#FBBF24" : isDark ? Colors.dark.border : Colors.light.border}
-                    style={{ marginHorizontal: 1 }}
-                  />
-                ))}
+            {isCompleted ? (
+              <View style={styles.completedBadge}>
+                <Feather name="check" size={12} color="#22C55E" />
               </View>
             ) : null}
           </>
@@ -118,7 +109,6 @@ export default function LevelSelectScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { theme, isDark } = useTheme();
   const [completedLevels, setCompletedLevels] = useState<Set<number>>(new Set());
-  const [levelStars, setLevelStars] = useState<Record<number, number>>({});
   const [currentLevel, setCurrentLevel] = useState(1);
   const [hapticEnabled, setHapticEnabled] = useState(true);
 
@@ -132,11 +122,9 @@ export default function LevelSelectScreen() {
 
   async function loadData() {
     const completed = await getCompletedLevels();
-    const stars = await getLevelStars();
     const current = await getCurrentLevel();
     const settings = await getSettings();
     setCompletedLevels(completed);
-    setLevelStars(stars);
     setCurrentLevel(current);
     setHapticEnabled(settings.hapticEnabled);
   }
@@ -152,7 +140,6 @@ export default function LevelSelectScreen() {
     ({ item, index }: { item: number; index: number }) => {
       const isCompleted = completedLevels.has(item);
       const isUnlocked = item === 1 || completedLevels.has(item - 1) || item <= currentLevel;
-      const stars = levelStars[item] || 0;
       const config = getLevelConfig(item);
 
       return (
@@ -160,14 +147,13 @@ export default function LevelSelectScreen() {
           level={item}
           isCompleted={isCompleted}
           isUnlocked={isUnlocked}
-          stars={stars}
           stateCount={config.states}
           onPress={() => handleLevelPress(item)}
           index={index}
         />
       );
     },
-    [completedLevels, levelStars, currentLevel, handleLevelPress]
+    [completedLevels, currentLevel, handleLevelPress]
   );
 
   return (
@@ -223,8 +209,9 @@ const styles = StyleSheet.create({
   levelNumber: {
     fontSize: 20,
   },
-  starsContainer: {
-    flexDirection: "row",
-    marginTop: Spacing.xs,
+  completedBadge: {
+    position: "absolute",
+    bottom: 6,
+    right: 6,
   },
 });

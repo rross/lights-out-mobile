@@ -137,7 +137,6 @@ export default function GameScreen() {
   const [board, setBoard] = useState<number[][]>([]);
   const [movesRemaining, setMovesRemaining] = useState(config.moves);
   const [showWinModal, setShowWinModal] = useState(false);
-  const [starsEarned, setStarsEarned] = useState(0);
   const [hapticEnabled, setHapticEnabled] = useState(true);
   const movesUsedRef = useRef(0);
 
@@ -196,19 +195,7 @@ export default function GameScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
 
-    const movesUsed = movesUsedRef.current;
-    const optimalMoves = Math.floor(config.moves * 0.6);
-    const goodMoves = Math.floor(config.moves * 0.8);
-
-    let stars = 1;
-    if (movesUsed <= optimalMoves) {
-      stars = 3;
-    } else if (movesUsed <= goodMoves) {
-      stars = 2;
-    }
-
-    setStarsEarned(stars);
-    await markLevelCompleted(level, stars);
+    await markLevelCompleted(level);
 
     if (level < TOTAL_LEVELS) {
       await setCurrentLevel(level + 1);
@@ -327,18 +314,6 @@ export default function GameScreen() {
               Puzzle Solved!
             </ThemedText>
 
-            <View style={styles.starsRow}>
-              {[1, 2, 3].map((s) => (
-                <Animated.View key={s} entering={FadeInDown.delay(300 + s * 100)}>
-                  <Feather
-                    name="star"
-                    size={36}
-                    color={s <= starsEarned ? "#FBBF24" : isDark ? Colors.dark.border : Colors.light.border}
-                  />
-                </Animated.View>
-              ))}
-            </View>
-
             <ThemedText style={[styles.movesUsedText, { fontFamily: Fonts.body }]}>
               Moves used: {movesUsedRef.current} / {config.moves}
             </ThemedText>
@@ -454,11 +429,6 @@ const styles = StyleSheet.create({
   },
   winTitle: {
     fontSize: 28,
-    marginBottom: Spacing.lg,
-  },
-  starsRow: {
-    flexDirection: "row",
-    gap: Spacing.md,
     marginBottom: Spacing.lg,
   },
   movesUsedText: {

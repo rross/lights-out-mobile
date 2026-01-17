@@ -3,7 +3,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const STORAGE_KEYS = {
   CURRENT_LEVEL: 'lightsout_current_level',
   COMPLETED_LEVELS: 'lightsout_completed_levels',
-  LEVEL_STARS: 'lightsout_level_stars',
   SETTINGS: 'lightsout_settings',
 };
 
@@ -46,28 +45,12 @@ export async function getCompletedLevels(): Promise<Set<number>> {
   }
 }
 
-export async function markLevelCompleted(level: number, stars: number): Promise<void> {
+export async function markLevelCompleted(level: number): Promise<void> {
   try {
     const completed = await getCompletedLevels();
     completed.add(level);
     await AsyncStorage.setItem(STORAGE_KEYS.COMPLETED_LEVELS, JSON.stringify([...completed]));
-    
-    const starsMap = await getLevelStars();
-    const currentStars = starsMap[level] || 0;
-    if (stars > currentStars) {
-      starsMap[level] = stars;
-      await AsyncStorage.setItem(STORAGE_KEYS.LEVEL_STARS, JSON.stringify(starsMap));
-    }
   } catch {
-  }
-}
-
-export async function getLevelStars(): Promise<Record<number, number>> {
-  try {
-    const value = await AsyncStorage.getItem(STORAGE_KEYS.LEVEL_STARS);
-    return value ? JSON.parse(value) : {};
-  } catch {
-    return {};
   }
 }
 
@@ -92,7 +75,6 @@ export async function resetAllProgress(): Promise<void> {
     await AsyncStorage.multiRemove([
       STORAGE_KEYS.CURRENT_LEVEL,
       STORAGE_KEYS.COMPLETED_LEVELS,
-      STORAGE_KEYS.LEVEL_STARS,
     ]);
   } catch {
   }
