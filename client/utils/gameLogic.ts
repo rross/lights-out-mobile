@@ -28,6 +28,14 @@ export function createEmptyBoard(): number[][] {
   return Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(1));
 }
 
+function buildStateOrder(states: number): number[] {
+  const order: number[] = [0, 1];
+  for (let s = states - 1; s >= 2; s--) {
+    order.push(s);
+  }
+  return order;
+}
+
 function getNextState(current: number, states: number): number {
   if (states === 2) {
     return 1 - current;
@@ -39,12 +47,15 @@ function getNextState(current: number, states: number): number {
   return stateOrder[(currentIndex + 1) % stateOrder.length];
 }
 
-function buildStateOrder(states: number): number[] {
-  const order: number[] = [0, 1];
-  for (let s = states - 1; s >= 2; s--) {
-    order.push(s);
+function getPrevState(current: number, states: number): number {
+  if (states === 2) {
+    return 1 - current;
   }
-  return order;
+  
+  const stateOrder = buildStateOrder(states);
+  const currentIndex = stateOrder.indexOf(current);
+  if (currentIndex === -1) return current;
+  return stateOrder[(currentIndex - 1 + stateOrder.length) % stateOrder.length];
 }
 
 export function toggleCell(board: number[][], row: number, col: number, level: number): number[][] {
@@ -75,6 +86,25 @@ export function applyMove(board: number[][], row: number, col: number, level: nu
   return newBoard;
 }
 
+function applyReverseMove(board: number[][], row: number, col: number, level: number): number[][] {
+  const newBoard = board.map(r => [...r]);
+  const config = getLevelConfig(level);
+  const states = config.states;
+  
+  const directions = [[0, 0], [0, 1], [0, -1], [1, 0], [-1, 0]];
+  
+  for (const [dx, dy] of directions) {
+    const newRow = row + dx;
+    const newCol = col + dy;
+    if (newRow >= 0 && newRow < GRID_SIZE && newCol >= 0 && newCol < GRID_SIZE) {
+      const current = newBoard[newRow][newCol];
+      newBoard[newRow][newCol] = getPrevState(current, states);
+    }
+  }
+  
+  return newBoard;
+}
+
 export function checkWin(board: number[][]): boolean {
   for (let row = 0; row < GRID_SIZE; row++) {
     for (let col = 0; col < GRID_SIZE; col++) {
@@ -99,13 +129,13 @@ export function generateSolvableBoard(level: number): number[][] {
   for (let i = 0; i < numReverseMoves; i++) {
     const row = Math.floor(Math.random() * GRID_SIZE);
     const col = Math.floor(Math.random() * GRID_SIZE);
-    board = applyMove(board, row, col, level);
+    board = applyReverseMove(board, row, col, level);
   }
   
   if (checkWin(board)) {
     const row = Math.floor(Math.random() * GRID_SIZE);
     const col = Math.floor(Math.random() * GRID_SIZE);
-    board = applyMove(board, row, col, level);
+    board = applyReverseMove(board, row, col, level);
   }
   
   return board;
