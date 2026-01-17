@@ -138,6 +138,7 @@ export default function GameScreen() {
   const [movesRemaining, setMovesRemaining] = useState(config.moves);
   const [showWinModal, setShowWinModal] = useState(false);
   const [hapticEnabled, setHapticEnabled] = useState(true);
+  const [moveHistory, setMoveHistory] = useState<number[][][]>([]);
   const movesUsedRef = useRef(0);
 
   const movesScale = useSharedValue(1);
@@ -160,6 +161,7 @@ export default function GameScreen() {
     setBoard(newBoard);
     setMovesRemaining(config.moves);
     movesUsedRef.current = 0;
+    setMoveHistory([]);
     setShowWinModal(false);
   }
 
@@ -170,6 +172,8 @@ export default function GameScreen() {
       if (hapticEnabled) {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       }
+
+      setMoveHistory(prev => [...prev, board]);
 
       const newBoard = applyMove(board, row, col, level);
       setBoard(newBoard);
@@ -229,6 +233,20 @@ export default function GameScreen() {
     initGame();
   }
 
+  function handleUndo() {
+    if (moveHistory.length === 0) return;
+
+    if (hapticEnabled) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+
+    const previousBoard = moveHistory[moveHistory.length - 1];
+    setBoard(previousBoard);
+    setMoveHistory(prev => prev.slice(0, -1));
+    setMovesRemaining(prev => prev + 1);
+    movesUsedRef.current -= 1;
+  }
+
   const movesAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: movesScale.value }],
   }));
@@ -273,26 +291,49 @@ export default function GameScreen() {
           ))}
         </View>
 
-        <Pressable
-          style={[
-            styles.resetButton,
-            {
-              bottom: insets.bottom + Spacing.xl,
-              backgroundColor: isDark ? Colors.dark.cardSurface : Colors.light.cardSurface,
-            },
-          ]}
-          onPress={handleReset}
-          testID="button-reset"
-        >
-          <Feather
-            name="rotate-ccw"
-            size={20}
-            color={isDark ? Colors.dark.text : Colors.light.text}
-          />
-          <ThemedText style={[styles.resetText, { fontFamily: Fonts.bodyMedium }]}>
-            Reset
-          </ThemedText>
-        </Pressable>
+        <View style={[styles.bottomButtons, { bottom: insets.bottom + Spacing.xl }]}>
+          <Pressable
+            style={[
+              styles.actionButton,
+              {
+                backgroundColor: isDark ? Colors.dark.cardSurface : Colors.light.cardSurface,
+                opacity: moveHistory.length === 0 ? 0.5 : 1,
+              },
+            ]}
+            onPress={handleUndo}
+            disabled={moveHistory.length === 0}
+            testID="button-undo"
+          >
+            <Feather
+              name="corner-up-left"
+              size={20}
+              color={isDark ? Colors.dark.text : Colors.light.text}
+            />
+            <ThemedText style={[styles.actionButtonText, { fontFamily: Fonts.bodyMedium }]}>
+              Undo
+            </ThemedText>
+          </Pressable>
+
+          <Pressable
+            style={[
+              styles.actionButton,
+              {
+                backgroundColor: isDark ? Colors.dark.cardSurface : Colors.light.cardSurface,
+              },
+            ]}
+            onPress={handleReset}
+            testID="button-reset"
+          >
+            <Feather
+              name="rotate-ccw"
+              size={20}
+              color={isDark ? Colors.dark.text : Colors.light.text}
+            />
+            <ThemedText style={[styles.actionButtonText, { fontFamily: Fonts.bodyMedium }]}>
+              Reset
+            </ThemedText>
+          </Pressable>
+        </View>
       </View>
 
       <Modal
@@ -393,9 +434,15 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 4,
   },
-  resetButton: {
+  bottomButtons: {
     position: "absolute",
+    left: Spacing.xl,
     right: Spacing.xl,
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: Spacing.lg,
+  },
+  actionButton: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.sm,
@@ -404,7 +451,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.full,
     ...Shadows.small,
   },
-  resetText: {
+  actionButtonText: {
     fontSize: 14,
   },
   modalOverlay: {
