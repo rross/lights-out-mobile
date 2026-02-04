@@ -120,7 +120,15 @@ function Cell({ row, col, state, level, onPress }: CellProps) {
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.cellGradient}
-      />
+      >
+        <LinearGradient
+          colors={[edgeColor + '80', 'transparent', 'transparent', edgeColor + '80'] as const}
+          locations={[0, 0.3, 0.7, 1]}
+          start={{ x: 1, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={styles.cellGradient}
+        />
+      </LinearGradient>
     </AnimatedPressable>
   );
 }
