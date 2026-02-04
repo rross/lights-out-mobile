@@ -138,7 +138,8 @@ export default function GameScreen() {
   const [movesRemaining, setMovesRemaining] = useState(config.moves);
   const [showWinModal, setShowWinModal] = useState(false);
   const [hapticEnabled, setHapticEnabled] = useState(true);
-  const [moveHistory, setMoveHistory] = useState<number[][][]>([]);
+  const [lastBoard, setLastBoard] = useState<number[][] | null>(null);
+  const [canUndo, setCanUndo] = useState(false);
   const movesUsedRef = useRef(0);
 
   const movesScale = useSharedValue(1);
@@ -161,7 +162,8 @@ export default function GameScreen() {
     setBoard(newBoard);
     setMovesRemaining(config.moves);
     movesUsedRef.current = 0;
-    setMoveHistory([]);
+    setLastBoard(null);
+    setCanUndo(false);
     setShowWinModal(false);
   }
 
@@ -173,7 +175,8 @@ export default function GameScreen() {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       }
 
-      setMoveHistory(prev => [...prev, board]);
+      setLastBoard(board);
+      setCanUndo(true);
 
       const newBoard = applyMove(board, row, col, level);
       setBoard(newBoard);
@@ -234,17 +237,16 @@ export default function GameScreen() {
   }
 
   function handleUndo() {
-    if (moveHistory.length === 0) return;
+    if (!canUndo || !lastBoard) return;
 
     if (hapticEnabled) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
 
-    const previousBoard = moveHistory[moveHistory.length - 1];
-    setBoard(previousBoard);
-    setMoveHistory(prev => prev.slice(0, -1));
+    setBoard(lastBoard);
     setMovesRemaining(prev => prev + 1);
     movesUsedRef.current -= 1;
+    setCanUndo(false);
   }
 
   const movesAnimatedStyle = useAnimatedStyle(() => ({
@@ -297,11 +299,11 @@ export default function GameScreen() {
               styles.actionButton,
               {
                 backgroundColor: isDark ? Colors.dark.cardSurface : Colors.light.cardSurface,
-                opacity: moveHistory.length === 0 ? 0.5 : 1,
+                opacity: canUndo ? 1 : 0.5,
               },
             ]}
             onPress={handleUndo}
-            disabled={moveHistory.length === 0}
+            disabled={!canUndo}
             testID="button-undo"
           >
             <Feather
