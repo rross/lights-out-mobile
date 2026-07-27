@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import { View, StyleSheet, Pressable, Dimensions, Modal, Image } from "react-native";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { View, StyleSheet, Pressable, useWindowDimensions, Modal, Image } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -42,11 +42,8 @@ import celebrationImage from "../../assets/images/celebration-win.png";
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type GameRouteProp = RouteProp<RootStackParamList, "Game">;
 
-const { width } = Dimensions.get("window");
 const GRID_PADDING = Spacing.lg;
 const CELL_GAP = 1;
-const GRID_WIDTH = width - GRID_PADDING * 2;
-const CELL_SIZE = (GRID_WIDTH - CELL_GAP * (GRID_SIZE_EXPORT - 1)) / GRID_SIZE_EXPORT;
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -84,10 +81,11 @@ interface CellProps {
   col: number;
   state: number;
   level: number;
+  cellSize: number;
   onPress: () => void;
 }
 
-function Cell({ row, col, state, level, onPress }: CellProps) {
+function Cell({ row, col, state, level, cellSize, onPress }: CellProps) {
   const scale = useSharedValue(1);
   const baseColor = getColorForState(state, level);
   
@@ -108,7 +106,7 @@ function Cell({ row, col, state, level, onPress }: CellProps) {
 
   return (
     <AnimatedPressable
-      style={[styles.cell, animatedStyle]}
+      style={[styles.cell, { width: cellSize, height: cellSize }, animatedStyle]}
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
@@ -134,6 +132,7 @@ function Cell({ row, col, state, level, onPress }: CellProps) {
 }
 
 export default function GameScreen() {
+  const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
   const navigation = useNavigation<NavigationProp>();
@@ -149,6 +148,19 @@ export default function GameScreen() {
   const [lastBoard, setLastBoard] = useState<number[][] | null>(null);
   const [canUndo, setCanUndo] = useState(false);
   const movesUsedRef = useRef(0);
+
+  // Compute cell size reactively — recalculates on every orientation change or device resize.
+  // In landscape the available height is the limiting dimension, so we constrain by both axes
+  // and pick whichever produces the smaller cell.
+  const cellSize = useMemo(() => {
+    const isLandscape = width > height;
+    // Reserved vertical space: header + moves counter block + bottom buttons + breathing room
+    const reservedHeight = headerHeight + (isLandscape ? 120 : 160);
+    const availableHeight = height - insets.top - insets.bottom - reservedHeight;
+    const byHeight = (availableHeight - CELL_GAP * (GRID_SIZE_EXPORT - 1)) / GRID_SIZE_EXPORT;
+    const byWidth = (width - GRID_PADDING * 2 - CELL_GAP * (GRID_SIZE_EXPORT - 1)) / GRID_SIZE_EXPORT;
+    return Math.max(4, Math.floor(Math.min(byWidth, byHeight)));
+  }, [width, height, headerHeight, insets.top, insets.bottom]);
 
   const movesScale = useSharedValue(1);
 
@@ -294,6 +306,7 @@ export default function GameScreen() {
                   col={colIndex}
                   state={cellState}
                   level={level}
+                  cellSize={cellSize}
                   onPress={() => handleCellPress(rowIndex, colIndex)}
                 />
               ))}
@@ -435,8 +448,6 @@ const styles = StyleSheet.create({
     marginBottom: CELL_GAP,
   },
   cell: {
-    width: CELL_SIZE,
-    height: CELL_SIZE,
     borderRadius: 4,
     overflow: "hidden",
   },
