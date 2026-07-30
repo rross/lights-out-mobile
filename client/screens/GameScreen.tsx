@@ -36,6 +36,10 @@ import {
   markLevelCompleted,
   setCurrentLevel,
   getSettings,
+  getLives,
+  setLives,
+  resetLives,
+  MAX_LIVES,
 } from "@/utils/storage";
 import celebrationImage from "../../assets/images/celebration-win.png";
 
@@ -144,9 +148,12 @@ export default function GameScreen() {
   const [board, setBoard] = useState<number[][]>([]);
   const [movesRemaining, setMovesRemaining] = useState(config.moves);
   const [showWinModal, setShowWinModal] = useState(false);
+  const [showFailModal, setShowFailModal] = useState(false);
+  const [showGameOverModal, setShowGameOverModal] = useState(false);
   const [hapticEnabled, setHapticEnabled] = useState(true);
   const [lastBoard, setLastBoard] = useState<number[][] | null>(null);
   const [canUndo, setCanUndo] = useState(false);
+  const [lives, setLivesState] = useState(MAX_LIVES);
   const movesUsedRef = useRef(0);
 
   // Compute cell size reactively — recalculates on every orientation change or device resize.
@@ -170,11 +177,17 @@ export default function GameScreen() {
     });
     initGame();
     loadSettings();
+    loadLives();
   }, [level]);
 
   async function loadSettings() {
     const settings = await getSettings();
     setHapticEnabled(settings.hapticEnabled);
+  }
+
+  async function loadLives() {
+    const stored = await getLives();
+    setLivesState(stored);
   }
 
   function initGame() {
@@ -185,11 +198,13 @@ export default function GameScreen() {
     setLastBoard(null);
     setCanUndo(false);
     setShowWinModal(false);
+    setShowFailModal(false);
+    setShowGameOverModal(false);
   }
 
   const handleCellPress = useCallback(
     (row: number, col: number) => {
-      if (movesRemaining <= 0 || showWinModal) return;
+      if (movesRemaining <= 0 || showWinModal || showFailModal || showGameOverModal) return;
 
       if (hapticEnabled) {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -212,10 +227,51 @@ export default function GameScreen() {
 
       if (checkWin(newBoard)) {
         handleWin();
+      } else if (newMovesRemaining === 0) {
+        handleFail();
       }
     },
-    [board, movesRemaining, level, showWinModal, hapticEnabled]
+    [board, movesRemaining, level, showWinModal, showFailModal, showGameOverModal, hapticEnabled]
   );
+
+  async function handleFail() {
+    if (hapticEnabled) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    }
+    const currentLives = await getLives();
+    const newLives = currentLives - 1;
+    await setLives(newLives);
+    setLivesState(newLives);
+    if (newLives <= 0) {
+      setShowGameOverModal(true);
+    } else {
+      setShowFailModal(true);
+    }
+  }
+
+  function handleTryAgain() {
+    // Resets the board but does NOT deduct another life
+    const newBoard = generateSolvableBoard(level);
+    setBoard(newBoard);
+    setMovesRemaining(config.moves);
+    movesUsedRef.current = 0;
+    setLastBoard(null);
+    setCanUndo(false);
+    setShowFailModal(false);
+  }
+
+  function handleQuitToHome() {
+    setShowFailModal(false);
+    setShowGameOverModal(false);
+    navigation.navigate("Home");
+  }
+
+  async function handlePlayAgain() {
+    await resetLives();
+    setLivesState(MAX_LIVES);
+    setShowGameOverModal(false);
+    navigation.replace("Game", { level: 1 });
+  }
 
   async function handleWin() {
     if (hapticEnabled) {
@@ -285,6 +341,18 @@ export default function GameScreen() {
   return (
     <ThemedView style={styles.container}>
       <View style={[styles.content, { paddingTop: headerHeight + Spacing.md }]}>
+        {/* Lives row */}
+        <View style={styles.livesRow}>
+          {Array.from({ length: MAX_LIVES }).map((_, i) => (
+            <Feather
+              key={i}
+              name="heart"
+              size={16}
+              color={i < lives ? "#EF4444" : isDark ? "#333333" : "#CCCCCC"}
+            />
+          ))}
+        </View>
+
         <Animated.View style={[styles.movesContainer, movesAnimatedStyle]}>
           <ThemedText style={[styles.movesLabel, { fontFamily: Fonts.bodyMedium }]}>
             Moves Remaining
@@ -358,6 +426,120 @@ export default function GameScreen() {
           </Pressable>
         </View>
       </View>
+
+      {/* Level Failed Modal */}
+      <Modal
+        visible={showFailModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {}}
+      >
+        <View style={styles.modalOverlay}>
+          <Animated.View
+            entering={ZoomIn.springify().damping(15)}
+            style={[
+              styles.modalContent,
+              { backgroundColor: isDark ? Colors.dark.cardSurface : Colors.light.cardSurface },
+            ]}
+          >
+            <View style={styles.failIconRow}>
+              <Feather name="x-circle" size={56} color="#EF4444" />
+            </View>
+            <ThemedText style={[styles.winTitle, { fontFamily: Fonts.display }]}>
+              Out of Moves!
+            </ThemedText>
+            <View style={styles.livesRemainingRow}>
+              {Array.from({ length: MAX_LIVES }).map((_, i) => (
+                <Feather
+                  key={i}
+                  name="heart"
+                  size={20}
+                  color={i < lives ? "#EF4444" : isDark ? "#333333" : "#CCCCCC"}
+                />
+              ))}
+            </View>
+            <ThemedText style={[styles.movesUsedText, { fontFamily: Fonts.body }]}>
+              {lives} {lives === 1 ? "life" : "lives"} remaining
+            </ThemedText>
+            <View style={styles.modalButtons}>
+              <Pressable style={styles.primaryButton} onPress={handleTryAgain} testID="button-try-again">
+                <LinearGradient
+                  colors={["#6366F1", "#4F46E5"]}
+                  style={styles.primaryButtonGradient}
+                >
+                  <Feather name="rotate-ccw" size={20} color="#FFFFFF" />
+                  <ThemedText style={styles.primaryButtonText}>Try Again</ThemedText>
+                </LinearGradient>
+              </Pressable>
+              <Pressable
+                style={[
+                  styles.secondaryButton,
+                  { borderColor: isDark ? Colors.dark.border : Colors.light.border },
+                ]}
+                onPress={handleQuitToHome}
+                testID="button-quit"
+              >
+                <Feather name="home" size={18} color={isDark ? Colors.dark.text : Colors.light.text} />
+                <ThemedText style={[styles.secondaryButtonText, { fontFamily: Fonts.bodyMedium }]}>
+                  Quit to Home
+                </ThemedText>
+              </Pressable>
+            </View>
+          </Animated.View>
+        </View>
+      </Modal>
+
+      {/* Game Over Modal */}
+      <Modal
+        visible={showGameOverModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {}}
+      >
+        <View style={styles.modalOverlay}>
+          <Animated.View
+            entering={ZoomIn.springify().damping(15)}
+            style={[
+              styles.modalContent,
+              { backgroundColor: isDark ? Colors.dark.cardSurface : Colors.light.cardSurface },
+            ]}
+          >
+            <View style={styles.failIconRow}>
+              <Feather name="alert-circle" size={56} color="#EF4444" />
+            </View>
+            <ThemedText style={[styles.gameOverTitle, { fontFamily: Fonts.display }]}>
+              Game Over
+            </ThemedText>
+            <ThemedText style={[styles.movesUsedText, { fontFamily: Fonts.body }]}>
+              You've used all your lives. Better luck next time!
+            </ThemedText>
+            <View style={styles.modalButtons}>
+              <Pressable style={styles.primaryButton} onPress={handlePlayAgain} testID="button-play-again">
+                <LinearGradient
+                  colors={["#6366F1", "#4F46E5"]}
+                  style={styles.primaryButtonGradient}
+                >
+                  <Feather name="play" size={20} color="#FFFFFF" />
+                  <ThemedText style={styles.primaryButtonText}>Play Again</ThemedText>
+                </LinearGradient>
+              </Pressable>
+              <Pressable
+                style={[
+                  styles.secondaryButton,
+                  { borderColor: isDark ? Colors.dark.border : Colors.light.border },
+                ]}
+                onPress={handleQuitToHome}
+                testID="button-go-home"
+              >
+                <Feather name="home" size={18} color={isDark ? Colors.dark.text : Colors.light.text} />
+                <ThemedText style={[styles.secondaryButtonText, { fontFamily: Fonts.bodyMedium }]}>
+                  Return to Home
+                </ThemedText>
+              </Pressable>
+            </View>
+          </Animated.View>
+        </View>
+      </Modal>
 
       <Modal
         visible={showWinModal}
@@ -536,5 +718,22 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     fontSize: 16,
+  },
+  livesRow: {
+    flexDirection: "row",
+    gap: Spacing.xs,
+    marginBottom: Spacing.md,
+  },
+  livesRemainingRow: {
+    flexDirection: "row",
+    gap: Spacing.xs,
+    marginBottom: Spacing.sm,
+  },
+  failIconRow: {
+    marginBottom: Spacing.lg,
+  },
+  gameOverTitle: {
+    fontSize: 32,
+    marginBottom: Spacing.lg,
   },
 });

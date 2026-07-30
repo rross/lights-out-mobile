@@ -4,7 +4,10 @@ const STORAGE_KEYS = {
   CURRENT_LEVEL: 'lightsout_current_level',
   COMPLETED_LEVELS: 'lightsout_completed_levels',
   SETTINGS: 'lightsout_settings',
+  LIVES: 'lightsout_lives',
 };
+
+export const MAX_LIVES = 10;
 
 export interface GameSettings {
   hapticEnabled: boolean;
@@ -66,6 +69,29 @@ export async function getSettings(): Promise<GameSettings> {
 export async function saveSettings(settings: GameSettings): Promise<void> {
   try {
     await AsyncStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+  } catch {
+  }
+}
+
+export async function getLives(): Promise<number> {
+  try {
+    const value = await AsyncStorage.getItem(STORAGE_KEYS.LIVES);
+    return value !== null ? parseInt(value, 10) : MAX_LIVES;
+  } catch {
+    return MAX_LIVES;
+  }
+}
+
+export async function setLives(lives: number): Promise<void> {
+  try {
+    await AsyncStorage.setItem(STORAGE_KEYS.LIVES, lives.toString());
+  } catch {
+  }
+}
+
+export async function resetLives(): Promise<void> {
+  try {
+    await AsyncStorage.setItem(STORAGE_KEYS.LIVES, MAX_LIVES.toString());
   } catch {
   }
 }
