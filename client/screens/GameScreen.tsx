@@ -15,7 +15,6 @@ import Animated, {
   withSequence,
   FadeIn,
   FadeInDown,
-  ZoomIn,
 } from "react-native-reanimated";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -437,7 +436,7 @@ export default function GameScreen() {
       >
         <View style={styles.modalOverlay}>
           <Animated.View
-            entering={ZoomIn.springify().damping(15)}
+            entering={FadeIn.duration(180)}
             style={[
               styles.modalContent,
               { backgroundColor: isDark ? Colors.dark.cardSurface : Colors.light.cardSurface },
@@ -499,7 +498,7 @@ export default function GameScreen() {
       >
         <View style={styles.modalOverlay}>
           <Animated.View
-            entering={ZoomIn.springify().damping(15)}
+            entering={FadeIn.duration(180)}
             style={[
               styles.modalContent,
               { backgroundColor: isDark ? Colors.dark.cardSurface : Colors.light.cardSurface },
@@ -550,7 +549,7 @@ export default function GameScreen() {
       >
         <View style={styles.modalOverlay}>
           <Animated.View
-            entering={ZoomIn.springify().damping(15)}
+            entering={FadeIn.duration(180)}
             style={[
               styles.modalContent,
               { backgroundColor: isDark ? Colors.dark.cardSurface : Colors.light.cardSurface },
