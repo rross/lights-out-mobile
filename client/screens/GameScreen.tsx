@@ -88,6 +88,76 @@ interface CellProps {
   onPress: () => void;
 }
 
+interface StoneMark {
+  left: string;
+  top: string;
+  width: number;
+  height: number;
+  rotation: string;
+  color: string;
+}
+
+function StoneTexture({ row, col, state }: Pick<CellProps, "row" | "col" | "state">) {
+  // Use the cell coordinates as a stable seed so the stone pattern varies across
+  // the board without changing on every render.
+  const seed = Math.abs(row * 31 + col * 17 + state * 13);
+  const marks: StoneMark[] = [
+    {
+      left: `${8 + (seed % 14)}%`,
+      top: `${12 + (seed % 18)}%`,
+      width: 18 + (seed % 14),
+      height: 3 + (seed % 2),
+      rotation: `${-26 + (seed % 18)}deg`,
+      color: "rgba(255, 255, 255, 0.14)",
+    },
+    {
+      left: `${52 + (seed % 16)}%`,
+      top: `${28 + (seed % 16)}%`,
+      width: 14 + (seed % 12),
+      height: 2 + (seed % 2),
+      rotation: `${18 + (seed % 20)}deg`,
+      color: "rgba(0, 0, 0, 0.11)",
+    },
+    {
+      left: `${14 + (seed % 20)}%`,
+      top: `${66 + (seed % 12)}%`,
+      width: 12 + (seed % 10),
+      height: 3,
+      rotation: `${-10 + (seed % 22)}deg`,
+      color: "rgba(255, 255, 255, 0.1)",
+    },
+    {
+      left: `${68 + (seed % 10)}%`,
+      top: `${70 + (seed % 12)}%`,
+      width: 4 + (seed % 4),
+      height: 4 + (seed % 3),
+      rotation: "0deg",
+      color: "rgba(0, 0, 0, 0.12)",
+    },
+  ];
+
+  return (
+    <View pointerEvents="none" style={styles.stoneTextureOverlay}>
+      {marks.map((mark, index) => (
+        <View
+          key={index}
+          style={[
+            styles.stoneMark,
+            {
+              left: mark.left,
+              top: mark.top,
+              width: mark.width,
+              height: mark.height,
+              backgroundColor: mark.color,
+              transform: [{ rotate: mark.rotation }],
+            },
+          ]}
+        />
+      ))}
+    </View>
+  );
+}
+
 function Cell({ row, col, state, level, cellSize, onPress }: CellProps) {
   const scale = useSharedValue(1);
   const baseColor = getColorForState(state, level);
@@ -131,6 +201,7 @@ function Cell({ row, col, state, level, cellSize, onPress }: CellProps) {
           style={styles.cellGradient}
         />
       </LinearGradient>
+        <StoneTexture row={row} col={col} state={state} />
     </AnimatedPressable>
   );
 }
@@ -653,6 +724,13 @@ const styles = StyleSheet.create({
   cellGradient: {
     flex: 1,
     borderRadius: 4,
+  },
+  stoneTextureOverlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  stoneMark: {
+    position: "absolute",
+    borderRadius: BorderRadius.full,
   },
   bottomButtons: {
     position: "absolute",
