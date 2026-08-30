@@ -77,6 +77,13 @@ export default function HomeScreen() {
     navigation.navigate("Settings");
   }
 
+  function handleHowToPlayPress() {
+    if (hapticEnabled) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    navigation.navigate("HowToPlay");
+  }
+
   const playButtonAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: playButtonScale.value }],
   }));
@@ -133,6 +140,26 @@ export default function HomeScreen() {
           >
             <ThemedText style={[styles.levelSelectText, { color: isDark ? Colors.dark.primary : Colors.light.primary }]}>
               Select Level
+            </ThemedText>
+          </Pressable>
+
+          <Pressable
+            style={styles.howToPlayButton}
+            onPress={handleHowToPlayPress}
+            testID="button-how-to-play"
+          >
+            <Feather
+              name="book-open"
+              size={18}
+              color={isDark ? Colors.dark.primary : Colors.light.primary}
+            />
+            <ThemedText
+              style={[
+                styles.howToPlayText,
+                { color: isDark ? Colors.dark.primary : Colors.light.primary },
+              ]}
+            >
+              How to Play
             </ThemedText>
           </Pressable>
         </Animated.View>
@@ -227,6 +254,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
   },
   levelSelectText: {
+    fontSize: 16,
+    fontWeight: "600",
+    fontFamily: Fonts.bodyMedium,
+  },
+  howToPlayButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.xl,
+  },
+  howToPlayText: {
     fontSize: 16,
     fontWeight: "600",
     fontFamily: Fonts.bodyMedium,

@@ -4,6 +4,7 @@ import HomeScreen from "@/screens/HomeScreen";
 import LevelSelectScreen from "@/screens/LevelSelectScreen";
 import GameScreen from "@/screens/GameScreen";
 import SettingsScreen from "@/screens/SettingsScreen";
+import HowToPlayScreen from "@/screens/HowToPlayScreen";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
 
 export type RootStackParamList = {
@@ -11,6 +12,7 @@ export type RootStackParamList = {
   LevelSelect: undefined;
   Game: { level: number };
   Settings: undefined;
+  HowToPlay: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -47,6 +49,14 @@ export default function RootStackNavigator() {
         options={{
           ...opaqueOptions,
           headerTitle: "Settings",
+        }}
+      />
+      <Stack.Screen
+        name="HowToPlay"
+        component={HowToPlayScreen}
+        options={{
+          ...opaqueOptions,
+          headerTitle: "How to Play",
         }}
       />
     </Stack.Navigator>
