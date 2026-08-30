@@ -556,8 +556,15 @@ export default function GameScreen() {
             ]}
           >
             <Image source={celebrationImage} style={styles.celebrationImage} />
-            <ThemedText style={[styles.winTitle, { fontFamily: Fonts.display }]}>
-              Puzzle Solved!
+            <ThemedText
+              style={[
+                level === TOTAL_LEVELS ? styles.completionTitle : styles.winTitle,
+                { fontFamily: Fonts.display },
+              ]}
+            >
+              {level === TOTAL_LEVELS
+                ? "Congratulations! You have completed all levels of Lights Off Color Cascade"
+                : "Puzzle Solved!"}
             </ThemedText>
 
             <ThemedText style={[styles.movesUsedText, { fontFamily: Fonts.body }]}>
@@ -575,22 +582,32 @@ export default function GameScreen() {
                     <Feather name="arrow-right" size={20} color="#FFFFFF" />
                   </LinearGradient>
                 </Pressable>
-              ) : null}
+              ) : (
+                <Pressable style={styles.primaryButton} onPress={handlePlayAgain} testID="button-final-play-again">
+                  <LinearGradient
+                    colors={["#6366F1", "#4F46E5"]}
+                    style={styles.primaryButtonGradient}
+                  >
+                    <Feather name="play" size={20} color="#FFFFFF" />
+                    <ThemedText style={styles.primaryButtonText}>Play Again</ThemedText>
+                  </LinearGradient>
+                </Pressable>
+              )}
               <Pressable
                 style={[
                   styles.secondaryButton,
                   { borderColor: isDark ? Colors.dark.border : Colors.light.border },
                 ]}
-                onPress={handleReplay}
-                testID="button-replay"
+                onPress={level === TOTAL_LEVELS ? handleQuitToHome : handleReplay}
+                testID={level === TOTAL_LEVELS ? "button-final-home" : "button-replay"}
               >
                 <Feather
-                  name="rotate-ccw"
+                  name={level === TOTAL_LEVELS ? "home" : "rotate-ccw"}
                   size={18}
                   color={isDark ? Colors.dark.text : Colors.light.text}
                 />
                 <ThemedText style={[styles.secondaryButtonText, { fontFamily: Fonts.bodyMedium }]}>
-                  Replay
+                  {level === TOTAL_LEVELS ? "Return to Home" : "Replay"}
                 </ThemedText>
               </Pressable>
             </View>
@@ -679,6 +696,12 @@ const styles = StyleSheet.create({
   },
   winTitle: {
     fontSize: 28,
+    marginBottom: Spacing.lg,
+  },
+  completionTitle: {
+    fontSize: 24,
+    lineHeight: 32,
+    textAlign: "center",
     marginBottom: Spacing.lg,
   },
   movesUsedText: {
