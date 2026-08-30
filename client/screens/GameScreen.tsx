@@ -366,9 +366,10 @@ export default function GameScreen() {
   }
 
   function handleQuitToHome() {
+    setShowWinModal(false);
     setShowFailModal(false);
     setShowGameOverModal(false);
-    navigation.navigate("Home");
+    navigation.popToTop();
   }
 
   async function handlePlayAgain() {
