@@ -206,6 +206,29 @@ function Cell({ row, col, state, level, cellSize, onPress }: CellProps) {
   );
 }
 
+interface ColorLegendSwatchProps {
+  state: number;
+  level: number;
+  size: number;
+}
+
+function ColorLegendSwatch({ state, level, size }: ColorLegendSwatchProps) {
+  const baseColor = getColorForState(state, level);
+  const edgeColor = darkenColor(baseColor, 18);
+  const centerColor = adjustBrightness(baseColor, 14);
+
+  return (
+    <LinearGradient
+      colors={[edgeColor, baseColor, centerColor, baseColor, edgeColor] as const}
+      locations={[0, 0.2, 0.5, 0.8, 1]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[styles.legendSwatch, { width: size, height: size }]}
+      testID={`legend-color-${state}`}
+    />
+  );
+}
+
 export default function GameScreen() {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -233,12 +256,23 @@ export default function GameScreen() {
   const cellSize = useMemo(() => {
     const isLandscape = width > height;
     // Reserved vertical space: header + moves counter block + bottom buttons + breathing room
-    const reservedHeight = headerHeight + (isLandscape ? 120 : 160);
+    const reservedHeight = headerHeight + (isLandscape ? 160 : 200);
     const availableHeight = height - insets.top - insets.bottom - reservedHeight;
     const byHeight = (availableHeight - CELL_GAP * (GRID_SIZE_EXPORT - 1)) / GRID_SIZE_EXPORT;
     const byWidth = (width - GRID_PADDING * 2 - CELL_GAP * (GRID_SIZE_EXPORT - 1)) / GRID_SIZE_EXPORT;
     return Math.max(4, Math.floor(Math.min(byWidth, byHeight)));
   }, [width, height, headerHeight, insets.top, insets.bottom]);
+
+  // The game progresses through the highest color layer down to yellow.
+  // Black is the goal state, so it is intentionally left out of the legend.
+  const legendStates = useMemo(
+    () =>
+      Array.from({ length: config.states }, (_, state) => state)
+        .reverse()
+        .filter((state) => state !== 1),
+    [config.states]
+  );
+  const legendSwatchSize = Math.max(16, Math.min(30, Math.round(cellSize * 0.8)));
 
   const movesScale = useSharedValue(1);
 
@@ -450,6 +484,17 @@ export default function GameScreen() {
                 />
               ))}
             </View>
+          ))}
+        </View>
+
+        <View style={styles.colorLegend} testID="color-legend">
+          {legendStates.map((state) => (
+            <ColorLegendSwatch
+              key={state}
+              state={state}
+              level={level}
+              size={legendSwatchSize}
+            />
           ))}
         </View>
 
@@ -724,6 +769,18 @@ const styles = StyleSheet.create({
   cellGradient: {
     flex: 1,
     borderRadius: 4,
+  },
+  colorLegend: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.sm,
+    marginTop: Spacing.md,
+  },
+  legendSwatch: {
+    borderRadius: BorderRadius.xs,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.25)",
   },
   stoneTextureOverlay: {
     ...StyleSheet.absoluteFillObject,
