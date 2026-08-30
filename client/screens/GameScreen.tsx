@@ -93,8 +93,9 @@ function Cell({ row, col, state, level, cellSize, onPress }: CellProps) {
   const scale = useSharedValue(1);
   const baseColor = getColorForState(state, level);
   
-  const edgeColor = darkenColor(baseColor, 25);
-  const centerColor = adjustBrightness(baseColor, 20);
+  // Keep the edge contrast subtle so the board has depth without looking harsh.
+  const edgeColor = darkenColor(baseColor, 14);
+  const centerColor = adjustBrightness(baseColor, 10);
 
   function handlePressIn() {
     scale.value = withSpring(0.9, { damping: 15 });
@@ -117,15 +118,15 @@ function Cell({ row, col, state, level, cellSize, onPress }: CellProps) {
       testID={`cell-${row}-${col}`}
     >
       <LinearGradient
-        colors={[edgeColor, centerColor, centerColor, edgeColor] as const}
-        locations={[0, 0.3, 0.7, 1]}
+        colors={[edgeColor, baseColor, centerColor, baseColor, edgeColor] as const}
+        locations={[0, 0.2, 0.5, 0.8, 1]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.cellGradient}
       >
         <LinearGradient
-          colors={[edgeColor + '80', 'transparent', 'transparent', edgeColor + '80'] as const}
-          locations={[0, 0.3, 0.7, 1]}
+          colors={[edgeColor + "35", "transparent", "transparent", "transparent", edgeColor + "35"] as const}
+          locations={[0, 0.2, 0.5, 0.8, 1]}
           start={{ x: 1, y: 0 }}
           end={{ x: 0, y: 1 }}
           style={styles.cellGradient}
