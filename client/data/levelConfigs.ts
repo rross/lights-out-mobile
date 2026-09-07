@@ -47,9 +47,10 @@ for (let i = 0; i < 22; i++) {
   levelConfigs[106 + i] = { moves: moves_106_127[i], states: 7 };
 }
 
-const moves_128_154 = [35, 38, 40, 43, 45, 48, 50, 53, 55, 58, 60, 63, 65, 68, 70, 73, 75, 78, 80, 83, 85, 88, 90, 93, 95, 98, 100];
-for (let i = 0; i < 27; i++) {
-  levelConfigs[128 + i] = { moves: moves_128_154[i], states: 8 };
+const moves_27_level_layer = [35, 38, 40, 43, 45, 48, 50, 53, 55, 58, 60, 63, 65, 68, 70, 73, 75, 78, 80, 83, 85, 88, 90, 93, 95, 98, 100];
+for (let i = 0; i < moves_27_level_layer.length; i++) {
+  levelConfigs[128 + i] = { moves: moves_27_level_layer[i], states: 8 };
+  levelConfigs[155 + i] = { moves: moves_27_level_layer[i], states: 9 };
 }
 
 export default levelConfigs;

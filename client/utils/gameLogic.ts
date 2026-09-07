@@ -11,6 +11,7 @@ export const COLORS: Record<number, string> = {
   5: '#ffb3da',
   6: '#2e7d32',
   7: '#00bcd4',
+  8: '#ff9800',
 };
 
 export function getColorForState(state: number, level: number): string {
@@ -125,10 +126,34 @@ export function generateSolvableBoard(level: number): number[][] {
   const numReverseMoves = targetMoves < 20 
     ? targetMoves 
     : Math.ceil(targetMoves * 0.9);
-  
-  for (let i = 0; i < numReverseMoves; i++) {
-    const row = Math.floor(Math.random() * GRID_SIZE);
-    const col = Math.floor(Math.random() * GRID_SIZE);
+
+  // Nine-state levels introduce orange as the highest layer. Random moves alone
+  // rarely reach that depth, so reserve enough moves to create it at one anchor
+  // cell and keep later random moves from changing that anchor.
+  const shouldGuaranteeTopLayer = config.states === 9;
+  const anchorRow = shouldGuaranteeTopLayer
+    ? 2 + Math.floor(Math.random() * (GRID_SIZE - 4))
+    : -1;
+  const anchorCol = shouldGuaranteeTopLayer
+    ? 2 + Math.floor(Math.random() * (GRID_SIZE - 4))
+    : -1;
+  const topLayerMoves = shouldGuaranteeTopLayer ? config.states - 1 : 0;
+
+  for (let i = 0; i < topLayerMoves; i++) {
+    board = applyReverseMove(board, anchorRow, anchorCol, level);
+  }
+
+  for (let i = topLayerMoves; i < numReverseMoves; i++) {
+    let row = Math.floor(Math.random() * GRID_SIZE);
+    let col = Math.floor(Math.random() * GRID_SIZE);
+
+    if (shouldGuaranteeTopLayer) {
+      while (Math.abs(row - anchorRow) + Math.abs(col - anchorCol) <= 1) {
+        row = Math.floor(Math.random() * GRID_SIZE);
+        col = Math.floor(Math.random() * GRID_SIZE);
+      }
+    }
+
     board = applyReverseMove(board, row, col, level);
   }
   
@@ -142,4 +167,4 @@ export function generateSolvableBoard(level: number): number[][] {
 }
 
 export const GRID_SIZE_EXPORT = GRID_SIZE;
-export const TOTAL_LEVELS = 154;
+export const TOTAL_LEVELS = 181;
