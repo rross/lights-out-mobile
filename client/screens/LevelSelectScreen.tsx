@@ -18,6 +18,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 import { getCompletedLevels, getCurrentLevel, getSettings } from "@/utils/storage";
 import { TOTAL_LEVELS, getLevelConfig } from "@/utils/gameLogic";
+import { TEST_MODE_UNLOCK_ALL_LEVELS } from "@/constants/gameConfig";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -139,7 +140,11 @@ export default function LevelSelectScreen() {
   const renderItem = useCallback(
     ({ item, index }: { item: number; index: number }) => {
       const isCompleted = completedLevels.has(item);
-      const isUnlocked = item === 1 || completedLevels.has(item - 1) || item <= currentLevel;
+       const isUnlocked =
+         TEST_MODE_UNLOCK_ALL_LEVELS ||
+         item === 1 ||
+         completedLevels.has(item - 1) ||
+         item <= currentLevel;
       const config = getLevelConfig(item);
 
       return (
@@ -158,6 +163,14 @@ export default function LevelSelectScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
+      {TEST_MODE_UNLOCK_ALL_LEVELS ? (
+        <View style={styles.testBanner} testID="test-mode-banner">
+          <Feather name="unlock" size={16} color={isDark ? "#FCD34D" : "#92400E"} />
+          <ThemedText style={[styles.testBannerText, { color: isDark ? "#FCD34D" : "#92400E" }]}>
+            Testing mode: all levels unlocked
+          </ThemedText>
+        </View>
+      ) : null}
       <FlatList
         data={levels}
         renderItem={renderItem}
@@ -179,6 +192,22 @@ export default function LevelSelectScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  testBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.sm,
+    marginHorizontal: HORIZONTAL_PADDING,
+    marginTop: Spacing.sm,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.sm,
+    backgroundColor: "#FEF3C7",
+  },
+  testBannerText: {
+    fontSize: 13,
+    fontFamily: Fonts.bodyMedium,
   },
   listContent: {
     paddingHorizontal: HORIZONTAL_PADDING,
