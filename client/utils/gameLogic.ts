@@ -12,6 +12,7 @@ export const COLORS: Record<number, string> = {
   6: '#2e7d32',
   7: '#00bcd4',
   8: '#ff9800',
+  9: '#ffffff',
 };
 
 export function getColorForState(state: number, level: number): string {
@@ -127,17 +128,17 @@ export function generateSolvableBoard(level: number): number[][] {
     ? targetMoves 
     : Math.ceil(targetMoves * 0.9);
 
-  // Nine-state levels introduce orange as the highest layer. Random moves alone
-  // rarely reach that depth, so reserve enough moves to create it at one anchor
-  // cell and keep later random moves from changing that anchor.
-  const shouldGuaranteeTopLayer = config.states === 9;
+  // The highest-layer levels introduce orange or white. Random moves alone
+  // rarely reach the new layer, so reserve three reverse moves to create it at
+  // one anchor cell and keep later random moves from changing that anchor.
+  const shouldGuaranteeTopLayer = config.states >= 9;
   const anchorRow = shouldGuaranteeTopLayer
     ? 2 + Math.floor(Math.random() * (GRID_SIZE - 4))
     : -1;
   const anchorCol = shouldGuaranteeTopLayer
     ? 2 + Math.floor(Math.random() * (GRID_SIZE - 4))
     : -1;
-  const topLayerMoves = shouldGuaranteeTopLayer ? config.states - 1 : 0;
+  const topLayerMoves = shouldGuaranteeTopLayer ? 3 : 0;
 
   for (let i = 0; i < topLayerMoves; i++) {
     board = applyReverseMove(board, anchorRow, anchorCol, level);
@@ -167,4 +168,4 @@ export function generateSolvableBoard(level: number): number[][] {
 }
 
 export const GRID_SIZE_EXPORT = GRID_SIZE;
-export const TOTAL_LEVELS = 181;
+export const TOTAL_LEVELS = 208;

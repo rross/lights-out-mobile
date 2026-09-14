@@ -51,6 +51,7 @@ const moves_27_level_layer = [35, 38, 40, 43, 45, 48, 50, 53, 55, 58, 60, 63, 65
 for (let i = 0; i < moves_27_level_layer.length; i++) {
   levelConfigs[128 + i] = { moves: moves_27_level_layer[i], states: 8 };
   levelConfigs[155 + i] = { moves: moves_27_level_layer[i], states: 9 };
+  levelConfigs[182 + i] = { moves: moves_27_level_layer[i], states: 10 };
 }
 
 export default levelConfigs;
