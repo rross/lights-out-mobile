@@ -128,11 +128,11 @@ export function generateSolvableBoard(level: number): number[][] {
     ? targetMoves 
     : Math.ceil(targetMoves * 0.9);
 
-  // The highest-layer levels introduce orange or white. Random moves alone
-  // rarely reach the new layer, so reserve enough reverse moves to reach the
-  // highest state at one anchor cell and keep later random moves from changing
-  // that anchor.
-  const shouldGuaranteeTopLayer = config.states >= 9;
+  // Random moves alone may not reach the highest available color, so reserve
+  // enough reverse moves to reach it at one anchor cell. This guarantees that
+  // every level visibly uses its top color while later random moves avoid
+  // changing that anchor.
+  const shouldGuaranteeTopLayer = config.states > 1;
   const anchorRow = shouldGuaranteeTopLayer
     ? 2 + Math.floor(Math.random() * (GRID_SIZE - 4))
     : -1;
