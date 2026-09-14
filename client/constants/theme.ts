@@ -36,14 +36,14 @@ export const Colors = {
 export const GameColors: Record<number, string> = {
   0: '#ffeb3b',
   1: '#000000',
-  2: '#f44336',
+  2: '#d81b60',
   3: '#2196F3',
   4: '#9c27b0',
   5: '#ffb3da',
   6: '#2e7d32',
   7: '#00bcd4',
   8: '#ff9800',
-  9: '#d81b60',
+  9: '#7c3aed',
 };
 
 export const Spacing = {
