@@ -8,13 +8,15 @@ const STORAGE_KEYS = {
 };
 
 export const MAX_LIVES = 10;
-export const DEFAULT_MUSIC_VOLUME = 0.15;
-export const DEFAULT_SOUND_VOLUME = 0.75;
+export const DEFAULT_MUSIC_VOLUME = 0.5;
+export const DEFAULT_SOUND_VOLUME = 0.5;
 
 export interface GameSettings {
   hapticEnabled: boolean;
   soundEnabled: boolean;
   musicEnabled: boolean;
+  musicVolume: number;
+  soundVolume: number;
 }
 
 const DEFAULT_SETTINGS: GameSettings = {
