@@ -1,0 +1,1 @@
+- [Audio settings synchronization](audio-settings-synchronization.md) — Volume controls must sync saved values into active audio players when gameplay regains focus.
