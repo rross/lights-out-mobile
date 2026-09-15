@@ -8,6 +8,8 @@ const STORAGE_KEYS = {
 };
 
 export const MAX_LIVES = 10;
+export const DEFAULT_MUSIC_VOLUME = 0.15;
+export const DEFAULT_SOUND_VOLUME = 0.75;
 
 export interface GameSettings {
   hapticEnabled: boolean;
@@ -19,6 +21,8 @@ const DEFAULT_SETTINGS: GameSettings = {
   hapticEnabled: true,
   soundEnabled: true,
   musicEnabled: true,
+  musicVolume: DEFAULT_MUSIC_VOLUME,
+  soundVolume: DEFAULT_SOUND_VOLUME,
 };
 
 export async function getCurrentLevel(): Promise<number> {

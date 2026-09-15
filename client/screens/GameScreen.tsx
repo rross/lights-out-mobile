@@ -40,6 +40,8 @@ import {
   setLives,
   resetLives,
   MAX_LIVES,
+  DEFAULT_MUSIC_VOLUME,
+  DEFAULT_SOUND_VOLUME,
 } from "@/utils/storage";
 import celebrationImage from "../../assets/images/celebration-win.png";
 
@@ -255,6 +257,8 @@ export default function GameScreen() {
   const [hapticEnabled, setHapticEnabled] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [musicEnabled, setMusicEnabled] = useState(false);
+  const [musicVolume, setMusicVolume] = useState(DEFAULT_MUSIC_VOLUME);
+  const [soundVolume, setSoundVolume] = useState(DEFAULT_SOUND_VOLUME);
   const [lastBoard, setLastBoard] = useState<number[][] | null>(null);
   const [canUndo, setCanUndo] = useState(false);
   const [lives, setLivesState] = useState(MAX_LIVES);
@@ -302,13 +306,6 @@ export default function GameScreen() {
   }, [level]);
 
   useEffect(() => {
-    musicPlayer.loop = true;
-    musicPlayer.volume = BACKGROUND_MUSIC_VOLUME;
-    cellTapPlayer.volume = 0.35;
-    movesExhaustedPlayer.volume = 0.55;
-    undoPlayer.volume = 0.45;
-    levelCompletePlayer.volume = 0.6;
-    gameCompletePlayer.volume = 0.65;
     void setAudioModeAsync({
       playsInSilentMode: true,
       interruptionMode: "mixWithOthers",
@@ -317,12 +314,24 @@ export default function GameScreen() {
     return () => {
       musicPlayer.pause();
     };
+  }, [musicPlayer]);
+
+  useEffect(() => {
+    musicPlayer.loop = true;
+    musicPlayer.volume = musicVolume * (BACKGROUND_MUSIC_VOLUME / DEFAULT_MUSIC_VOLUME);
+    cellTapPlayer.volume = soundVolume * 0.65;
+    movesExhaustedPlayer.volume = soundVolume * 0.75;
+    undoPlayer.volume = soundVolume * 0.7;
+    levelCompletePlayer.volume = soundVolume * 0.85;
+    gameCompletePlayer.volume = soundVolume * 0.9;
   }, [
     cellTapPlayer,
     gameCompletePlayer,
     levelCompletePlayer,
     movesExhaustedPlayer,
     musicPlayer,
+    musicVolume,
+    soundVolume,
     undoPlayer,
   ]);
 
@@ -339,6 +348,8 @@ export default function GameScreen() {
     setHapticEnabled(settings.hapticEnabled);
     setSoundEnabled(settings.soundEnabled);
     setMusicEnabled(settings.musicEnabled);
+    setMusicVolume(settings.musicVolume);
+    setSoundVolume(settings.soundVolume);
   }
 
   function playSoundEffect(player: AudioPlayer) {
