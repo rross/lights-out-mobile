@@ -7,6 +7,7 @@ import { useHeaderHeight } from "@react-navigation/elements";
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
+import { setAudioModeAsync, useAudioPlayer } from "expo-audio";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -47,6 +48,8 @@ type GameRouteProp = RouteProp<RootStackParamList, "Game">;
 
 const GRID_PADDING = Spacing.lg;
 const CELL_GAP = 1;
+const BACKGROUND_MUSIC_VOLUME = 0.22;
+const backgroundMusic = require("../../assets/audio/bach-cello-suite-no1-prelude.mp3");
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -245,10 +248,12 @@ export default function GameScreen() {
   const [showFailModal, setShowFailModal] = useState(false);
   const [showGameOverModal, setShowGameOverModal] = useState(false);
   const [hapticEnabled, setHapticEnabled] = useState(true);
+  const [musicEnabled, setMusicEnabled] = useState(false);
   const [lastBoard, setLastBoard] = useState<number[][] | null>(null);
   const [canUndo, setCanUndo] = useState(false);
   const [lives, setLivesState] = useState(MAX_LIVES);
   const movesUsedRef = useRef(0);
+  const musicPlayer = useAudioPlayer(backgroundMusic);
 
   // Compute cell size reactively — recalculates on every orientation change or device resize.
   // In landscape the available height is the limiting dimension, so we constrain by both axes
@@ -285,9 +290,31 @@ export default function GameScreen() {
     loadLives();
   }, [level]);
 
+  useEffect(() => {
+    musicPlayer.loop = true;
+    musicPlayer.volume = BACKGROUND_MUSIC_VOLUME;
+    void setAudioModeAsync({
+      playsInSilentMode: true,
+      interruptionMode: "mixWithOthers",
+    });
+
+    return () => {
+      musicPlayer.pause();
+    };
+  }, [musicPlayer]);
+
+  useEffect(() => {
+    if (musicEnabled) {
+      musicPlayer.play();
+    } else {
+      musicPlayer.pause();
+    }
+  }, [musicEnabled, musicPlayer]);
+
   async function loadSettings() {
     const settings = await getSettings();
     setHapticEnabled(settings.hapticEnabled);
+    setMusicEnabled(settings.musicEnabled);
   }
 
   async function loadLives() {

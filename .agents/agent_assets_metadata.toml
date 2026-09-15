@@ -1,0 +1,9 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "YiN9XFXdcFVt8X-kySIgk"
+uri = "file://assets/audio/bach-cello-suite-no1-prelude.mp3"
+type = "audio"
+title = "Bach cello suite prelude"
+description = "Generated music: A faithful, gentle solo cello performance of Johann Sebastian Bach's Prelude from Cello Suite No. 1 in G major, BWV 1007. Public-domain composition, instrumental only, warm intimate …"

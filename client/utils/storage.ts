@@ -12,11 +12,13 @@ export const MAX_LIVES = 10;
 export interface GameSettings {
   hapticEnabled: boolean;
   soundEnabled: boolean;
+  musicEnabled: boolean;
 }
 
 const DEFAULT_SETTINGS: GameSettings = {
   hapticEnabled: true,
   soundEnabled: true,
+  musicEnabled: true,
 };
 
 export async function getCurrentLevel(): Promise<number> {

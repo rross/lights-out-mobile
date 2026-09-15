@@ -16,6 +16,7 @@ export default function SettingsScreen() {
   const [settings, setSettings] = useState<GameSettings>({
     hapticEnabled: true,
     soundEnabled: true,
+    musicEnabled: true,
   });
 
   useEffect(() => {
@@ -41,6 +42,15 @@ export default function SettingsScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     const newSettings = { ...settings, soundEnabled: value };
+    setSettings(newSettings);
+    await saveSettings(newSettings);
+  }
+
+  async function handleToggleMusic(value: boolean) {
+    if (settings.hapticEnabled) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    const newSettings = { ...settings, musicEnabled: value };
     setSettings(newSettings);
     await saveSettings(newSettings);
   }
@@ -118,6 +128,31 @@ export default function SettingsScreen() {
               }}
               thumbColor="#FFFFFF"
               testID="switch-sound"
+            />
+          </View>
+
+          <View style={[styles.divider, { backgroundColor: theme.border }]} />
+
+          <View style={styles.settingRow}>
+            <View style={styles.settingInfo}>
+              <Feather
+                name="music"
+                size={22}
+                color={isDark ? Colors.dark.primary : Colors.light.primary}
+              />
+              <ThemedText style={[styles.settingLabel, { fontFamily: Fonts.bodyMedium }]}>
+                Music
+              </ThemedText>
+            </View>
+            <Switch
+              value={settings.musicEnabled}
+              onValueChange={handleToggleMusic}
+              trackColor={{
+                false: isDark ? Colors.dark.border : Colors.light.border,
+                true: isDark ? Colors.dark.primary : Colors.light.primary,
+              }}
+              thumbColor="#FFFFFF"
+              testID="switch-music"
             />
           </View>
         </View>
