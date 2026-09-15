@@ -65,12 +65,19 @@ export default function SettingsScreen() {
     await saveSettings(newSettings);
   }
 
+  function normalizeVolume(value: number) {
+    return Math.max(0, Math.min(1, value));
+  }
+
   function handleVolumeChange(key: "musicVolume" | "soundVolume", value: number) {
-    setSettings((current) => ({ ...current, [key]: value }));
+    const nextValue = normalizeVolume(value);
+    setSettings((current) => ({ ...current, [key]: nextValue }));
   }
 
   async function handleVolumeComplete(key: "musicVolume" | "soundVolume", value: number) {
-    const newSettings = { ...settings, [key]: value };
+    const nextValue = normalizeVolume(value);
+    const storedSettings = await getSettings();
+    const newSettings = { ...storedSettings, [key]: nextValue };
     setSettings(newSettings);
     await saveSettings(newSettings);
   }

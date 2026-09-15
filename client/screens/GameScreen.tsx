@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { View, StyleSheet, Pressable, useWindowDimensions, Modal, Image } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
+import { useNavigation, useRoute, RouteProp, useFocusEffect } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { Feather } from "@expo/vector-icons";
@@ -301,9 +301,14 @@ export default function GameScreen() {
       headerTitle: `Level ${level}`,
     });
     initGame();
-    loadSettings();
     loadLives();
   }, [level]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void loadSettings();
+    }, [])
+  );
 
   useEffect(() => {
     void setAudioModeAsync({
