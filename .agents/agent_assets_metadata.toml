@@ -7,3 +7,38 @@ uri = "file://assets/audio/bach-cello-suite-no1-prelude.mp3"
 type = "audio"
 title = "Bach cello suite prelude"
 description = "Generated music: A faithful, gentle solo cello performance of Johann Sebastian Bach's Prelude from Cello Suite No. 1 in G major, BWV 1007. Public-domain composition, instrumental only, warm intimate …"
+
+[[outputs]]
+id = "jUsJ8hp0EU9B_cUTtkqo0"
+uri = "file://assets/audio/sfx-cell-tap.mp3"
+type = "audio"
+title = "cell tap"
+description = "Generated sound effect: A very short pleasant soft marimba-like single note for a puzzle game cell tap, bright but subtle, warm rounded attack, no harsh click, clean decay, instrumental UI sound."
+
+[[outputs]]
+id = "NjVcHWhbjAUarkZScKHPN"
+uri = "file://assets/audio/sfx-undo.mp3"
+type = "audio"
+title = "undo"
+description = "Generated sound effect: A short soft rewind sound for a puzzle game undo action, gentle descending two-note chime with a subtle airy reverse feel, pleasant and unobtrusive."
+
+[[outputs]]
+id = "yoP6sbLvriHRRIuWwz1Zp"
+uri = "file://assets/audio/sfx-moves-exhausted.mp3"
+type = "audio"
+title = "moves exhausted"
+description = "Generated sound effect: A short low-pitched gentle warning tone for a puzzle game when the player runs out of moves without solving the level, subdued and non-alarming, two soft descending notes."
+
+[[outputs]]
+id = "Xb3NVCKSb_-wfuMETlgld"
+uri = "file://assets/audio/sfx-level-complete.mp3"
+type = "audio"
+title = "level complete"
+description = "Generated sound effect: A short warm celebratory success chime for completing one puzzle level, three gentle ascending notes, satisfying but restrained, elegant and pleasant."
+
+[[outputs]]
+id = "jueU4Z5efjOhXaRpFchnx"
+uri = "file://assets/audio/sfx-game-complete.mp3"
+type = "audio"
+title = "game complete"
+description = "Generated sound effect: A short special triumphant completion fanfare for finishing an entire puzzle game, warm orchestral chime with a gentle ascending arpeggio and resolved final chord, celebratory…"

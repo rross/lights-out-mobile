@@ -7,7 +7,7 @@ import { useHeaderHeight } from "@react-navigation/elements";
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
-import { setAudioModeAsync, useAudioPlayer } from "expo-audio";
+import { setAudioModeAsync, useAudioPlayer, type AudioPlayer } from "expo-audio";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -50,6 +50,11 @@ const GRID_PADDING = Spacing.lg;
 const CELL_GAP = 1;
 const BACKGROUND_MUSIC_VOLUME = 0.22;
 const backgroundMusic = require("../../assets/audio/bach-cello-suite-no1-prelude.mp3");
+const cellTapSound = require("../../assets/audio/sfx-cell-tap.mp3");
+const movesExhaustedSound = require("../../assets/audio/sfx-moves-exhausted.mp3");
+const undoSound = require("../../assets/audio/sfx-undo.mp3");
+const levelCompleteSound = require("../../assets/audio/sfx-level-complete.mp3");
+const gameCompleteSound = require("../../assets/audio/sfx-game-complete.mp3");
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -248,12 +253,18 @@ export default function GameScreen() {
   const [showFailModal, setShowFailModal] = useState(false);
   const [showGameOverModal, setShowGameOverModal] = useState(false);
   const [hapticEnabled, setHapticEnabled] = useState(true);
+  const [soundEnabled, setSoundEnabled] = useState(false);
   const [musicEnabled, setMusicEnabled] = useState(false);
   const [lastBoard, setLastBoard] = useState<number[][] | null>(null);
   const [canUndo, setCanUndo] = useState(false);
   const [lives, setLivesState] = useState(MAX_LIVES);
   const movesUsedRef = useRef(0);
   const musicPlayer = useAudioPlayer(backgroundMusic);
+  const cellTapPlayer = useAudioPlayer(cellTapSound);
+  const movesExhaustedPlayer = useAudioPlayer(movesExhaustedSound);
+  const undoPlayer = useAudioPlayer(undoSound);
+  const levelCompletePlayer = useAudioPlayer(levelCompleteSound);
+  const gameCompletePlayer = useAudioPlayer(gameCompleteSound);
 
   // Compute cell size reactively — recalculates on every orientation change or device resize.
   // In landscape the available height is the limiting dimension, so we constrain by both axes
@@ -293,6 +304,11 @@ export default function GameScreen() {
   useEffect(() => {
     musicPlayer.loop = true;
     musicPlayer.volume = BACKGROUND_MUSIC_VOLUME;
+    cellTapPlayer.volume = 0.35;
+    movesExhaustedPlayer.volume = 0.55;
+    undoPlayer.volume = 0.45;
+    levelCompletePlayer.volume = 0.6;
+    gameCompletePlayer.volume = 0.65;
     void setAudioModeAsync({
       playsInSilentMode: true,
       interruptionMode: "mixWithOthers",
@@ -301,7 +317,14 @@ export default function GameScreen() {
     return () => {
       musicPlayer.pause();
     };
-  }, [musicPlayer]);
+  }, [
+    cellTapPlayer,
+    gameCompletePlayer,
+    levelCompletePlayer,
+    movesExhaustedPlayer,
+    musicPlayer,
+    undoPlayer,
+  ]);
 
   useEffect(() => {
     if (musicEnabled) {
@@ -314,7 +337,18 @@ export default function GameScreen() {
   async function loadSettings() {
     const settings = await getSettings();
     setHapticEnabled(settings.hapticEnabled);
+    setSoundEnabled(settings.soundEnabled);
     setMusicEnabled(settings.musicEnabled);
+  }
+
+  function playSoundEffect(player: AudioPlayer) {
+    if (!soundEnabled) return;
+
+    void player.seekTo(0).then(() => {
+      player.play();
+    }).catch((error) => {
+      console.warn("Unable to play sound effect", error);
+    });
   }
 
   async function loadLives() {
@@ -341,6 +375,7 @@ export default function GameScreen() {
       if (hapticEnabled) {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       }
+      playSoundEffect(cellTapPlayer);
 
       setLastBoard(board);
       setCanUndo(true);
@@ -363,13 +398,24 @@ export default function GameScreen() {
         handleFail();
       }
     },
-    [board, movesRemaining, level, showWinModal, showFailModal, showGameOverModal, hapticEnabled]
+    [
+      board,
+      movesRemaining,
+      level,
+      showWinModal,
+      showFailModal,
+      showGameOverModal,
+      hapticEnabled,
+      soundEnabled,
+      cellTapPlayer,
+    ]
   );
 
   async function handleFail() {
     if (hapticEnabled) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
+    playSoundEffect(movesExhaustedPlayer);
     const currentLives = await getLives();
     const newLives = currentLives - 1;
     await setLives(newLives);
@@ -410,6 +456,7 @@ export default function GameScreen() {
     if (hapticEnabled) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
+    playSoundEffect(level === TOTAL_LEVELS ? gameCompletePlayer : levelCompletePlayer);
 
     await markLevelCompleted(level);
 
@@ -451,6 +498,7 @@ export default function GameScreen() {
     if (hapticEnabled) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
+    playSoundEffect(undoPlayer);
 
     setBoard(lastBoard);
     setMovesRemaining(prev => prev + 1);
