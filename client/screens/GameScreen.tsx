@@ -50,7 +50,6 @@ type GameRouteProp = RouteProp<RootStackParamList, "Game">;
 
 const GRID_PADDING = Spacing.lg;
 const CELL_GAP = 1;
-const SOUND_EFFECT_GAIN = 1.6;
 const backgroundMusic = require("../../assets/audio/bach-cello-suite-no1-prelude.mp3");
 const cellTapSound = require("../../assets/audio/sfx-cell-tap.mp3");
 const movesExhaustedSound = require("../../assets/audio/sfx-moves-exhausted.mp3");
@@ -324,11 +323,11 @@ export default function GameScreen() {
   useEffect(() => {
     musicPlayer.loop = true;
     musicPlayer.volume = musicVolume;
-    cellTapPlayer.volume = Math.min(1, soundVolume * SOUND_EFFECT_GAIN * 0.65);
-    movesExhaustedPlayer.volume = Math.min(1, soundVolume * SOUND_EFFECT_GAIN * 0.75);
-    undoPlayer.volume = Math.min(1, soundVolume * SOUND_EFFECT_GAIN * 0.7);
-    levelCompletePlayer.volume = Math.min(1, soundVolume * SOUND_EFFECT_GAIN * 0.85);
-    gameCompletePlayer.volume = Math.min(1, soundVolume * SOUND_EFFECT_GAIN * 0.9);
+    cellTapPlayer.volume = soundVolume;
+    movesExhaustedPlayer.volume = soundVolume;
+    undoPlayer.volume = soundVolume;
+    levelCompletePlayer.volume = soundVolume;
+    gameCompletePlayer.volume = soundVolume;
   }, [
     cellTapPlayer,
     gameCompletePlayer,
