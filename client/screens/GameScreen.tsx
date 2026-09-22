@@ -54,6 +54,7 @@ const backgroundMusic = require("../../assets/audio/bach-cello-suite-no1-prelude
 const cellTapSound = require("../../assets/audio/sfx-cell-tap.mp3");
 const movesExhaustedSound = require("../../assets/audio/sfx-moves-exhausted.mp3");
 const undoSound = require("../../assets/audio/sfx-undo.mp3");
+const resetSound = require("../../assets/audio/sfx-reset.mp3");
 const levelCompleteSound = require("../../assets/audio/sfx-level-complete.mp3");
 const gameCompleteSound = require("../../assets/audio/sfx-game-complete.mp3");
 
@@ -266,6 +267,7 @@ export default function GameScreen() {
   const cellTapPlayer = useAudioPlayer(cellTapSound);
   const movesExhaustedPlayer = useAudioPlayer(movesExhaustedSound);
   const undoPlayer = useAudioPlayer(undoSound);
+  const resetPlayer = useAudioPlayer(resetSound);
   const levelCompletePlayer = useAudioPlayer(levelCompleteSound);
   const gameCompletePlayer = useAudioPlayer(gameCompleteSound);
 
@@ -326,6 +328,7 @@ export default function GameScreen() {
     cellTapPlayer.volume = soundVolume;
     movesExhaustedPlayer.volume = soundVolume;
     undoPlayer.volume = soundVolume;
+    resetPlayer.volume = soundVolume;
     levelCompletePlayer.volume = soundVolume;
     gameCompletePlayer.volume = soundVolume;
   }, [
@@ -335,6 +338,7 @@ export default function GameScreen() {
     movesExhaustedPlayer,
     musicPlayer,
     musicVolume,
+    resetPlayer,
     soundVolume,
     undoPlayer,
   ]);
@@ -504,6 +508,7 @@ export default function GameScreen() {
     if (hapticEnabled) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
+    playSoundEffect(resetPlayer);
     initGame();
   }
 
