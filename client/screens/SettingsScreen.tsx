@@ -8,6 +8,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors, Spacing, BorderRadius, Fonts, Shadows } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
+import { useBackgroundMusic } from "@/contexts/BackgroundMusicContext";
 import {
   getSettings,
   saveSettings,
@@ -21,6 +22,7 @@ import Slider from "@react-native-community/slider";
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const { theme, isDark } = useTheme();
+  const { applyMusicSettings } = useBackgroundMusic();
   const [settings, setSettings] = useState<GameSettings>({
     hapticEnabled: true,
     soundEnabled: true,
@@ -62,6 +64,7 @@ export default function SettingsScreen() {
     }
     const newSettings = { ...settings, musicEnabled: value };
     setSettings(newSettings);
+    applyMusicSettings(value, newSettings.musicVolume);
     await saveSettings(newSettings);
   }
 
@@ -72,6 +75,10 @@ export default function SettingsScreen() {
   function handleVolumeChange(key: "musicVolume" | "soundVolume", value: number) {
     const nextValue = normalizeVolume(value);
     setSettings((current) => ({ ...current, [key]: nextValue }));
+
+    if (key === "musicVolume") {
+      applyMusicSettings(settings.musicEnabled, nextValue);
+    }
   }
 
   async function handleVolumeComplete(key: "musicVolume" | "soundVolume", value: number) {
@@ -80,6 +87,10 @@ export default function SettingsScreen() {
     const newSettings = { ...storedSettings, [key]: nextValue };
     setSettings(newSettings);
     await saveSettings(newSettings);
+
+    if (key === "musicVolume") {
+      applyMusicSettings(newSettings.musicEnabled, nextValue);
+    }
   }
 
   function handleResetProgress() {

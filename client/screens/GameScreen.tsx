@@ -7,7 +7,7 @@ import { useHeaderHeight } from "@react-navigation/elements";
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
-import { setAudioModeAsync, useAudioPlayer, type AudioPlayer } from "expo-audio";
+import { useAudioPlayer, type AudioPlayer } from "expo-audio";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -40,7 +40,6 @@ import {
   setLives,
   resetLives,
   MAX_LIVES,
-  DEFAULT_MUSIC_VOLUME,
   DEFAULT_SOUND_VOLUME,
 } from "@/utils/storage";
 import celebrationImage from "../../assets/images/celebration-win.png";
@@ -50,7 +49,6 @@ type GameRouteProp = RouteProp<RootStackParamList, "Game">;
 
 const GRID_PADDING = Spacing.lg;
 const CELL_GAP = 1;
-const backgroundMusic = require("../../assets/audio/bach-cello-suite-no1-prelude.mp3");
 const cellTapSound = require("../../assets/audio/sfx-cell-tap.mp3");
 const movesExhaustedSound = require("../../assets/audio/sfx-moves-exhausted.mp3");
 const undoSound = require("../../assets/audio/sfx-undo.mp3");
@@ -256,14 +254,11 @@ export default function GameScreen() {
   const [showGameOverModal, setShowGameOverModal] = useState(false);
   const [hapticEnabled, setHapticEnabled] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(false);
-  const [musicEnabled, setMusicEnabled] = useState(false);
-  const [musicVolume, setMusicVolume] = useState(DEFAULT_MUSIC_VOLUME);
   const [soundVolume, setSoundVolume] = useState(DEFAULT_SOUND_VOLUME);
   const [lastBoard, setLastBoard] = useState<number[][] | null>(null);
   const [canUndo, setCanUndo] = useState(false);
   const [lives, setLivesState] = useState(MAX_LIVES);
   const movesUsedRef = useRef(0);
-  const musicPlayer = useAudioPlayer(backgroundMusic);
   const cellTapPlayer = useAudioPlayer(cellTapSound);
   const movesExhaustedPlayer = useAudioPlayer(movesExhaustedSound);
   const undoPlayer = useAudioPlayer(undoSound);
@@ -312,19 +307,6 @@ export default function GameScreen() {
   );
 
   useEffect(() => {
-    void setAudioModeAsync({
-      playsInSilentMode: true,
-      interruptionMode: "mixWithOthers",
-    });
-
-    return () => {
-      musicPlayer.pause();
-    };
-  }, [musicPlayer]);
-
-  useEffect(() => {
-    musicPlayer.loop = true;
-    musicPlayer.volume = musicVolume;
     cellTapPlayer.volume = soundVolume;
     movesExhaustedPlayer.volume = soundVolume;
     undoPlayer.volume = soundVolume;
@@ -336,27 +318,15 @@ export default function GameScreen() {
     gameCompletePlayer,
     levelCompletePlayer,
     movesExhaustedPlayer,
-    musicPlayer,
-    musicVolume,
     resetPlayer,
     soundVolume,
     undoPlayer,
   ]);
 
-  useEffect(() => {
-    if (musicEnabled) {
-      musicPlayer.play();
-    } else {
-      musicPlayer.pause();
-    }
-  }, [musicEnabled, musicPlayer]);
-
   async function loadSettings() {
     const settings = await getSettings();
     setHapticEnabled(settings.hapticEnabled);
     setSoundEnabled(settings.soundEnabled);
-    setMusicEnabled(settings.musicEnabled);
-    setMusicVolume(settings.musicVolume);
     setSoundVolume(settings.soundVolume);
   }
 

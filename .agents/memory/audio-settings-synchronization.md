@@ -14,3 +14,9 @@ For separate music and effects sliders to feel equivalent at the same percentage
 **Why:** The original music and effects files had substantially different integrated loudness, so equal numeric player volumes still produced an unbalanced mix.
 
 **How to apply:** Calibrate source assets first, then avoid hidden per-category gain or multipliers unless the product explicitly wants different slider behavior.
+
+Continuous background music should be owned by an app-level provider rather than an individual screen.
+
+**Why:** Screen-owned players are released or paused during navigation, causing abrupt stops between menus, levels, and completion modals.
+
+**How to apply:** Keep one looping player above the navigator, synchronize it directly from persisted settings, pause it when the app becomes inactive, and retry playback after the first pointer interaction for browser autoplay compatibility.

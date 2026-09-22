@@ -22,6 +22,7 @@ import { queryClient } from "@/lib/query-client";
 
 import RootStackNavigator from "@/navigation/RootStackNavigator";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { BackgroundMusicProvider } from "@/contexts/BackgroundMusicContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -50,10 +51,12 @@ export default function App() {
         <SafeAreaProvider>
           <GestureHandlerRootView style={styles.root}>
             <KeyboardProvider>
-              <NavigationContainer>
-                <RootStackNavigator />
-              </NavigationContainer>
-              <StatusBar style="auto" />
+              <BackgroundMusicProvider>
+                <NavigationContainer>
+                  <RootStackNavigator />
+                </NavigationContainer>
+                <StatusBar style="auto" />
+              </BackgroundMusicProvider>
             </KeyboardProvider>
           </GestureHandlerRootView>
         </SafeAreaProvider>
