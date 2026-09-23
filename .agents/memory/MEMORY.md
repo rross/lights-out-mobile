@@ -1,2 +1,2 @@
 - [Audio settings synchronization](audio-settings-synchronization.md) — Volume controls must sync saved values into active audio players when gameplay regains focus.
-- [Physical iOS Expo Go](physical-ios-expo-go.md) — SDK 57 physical-iOS previews require the Replit Expo session login before Metro starts.
+- [Physical iOS Expo Go](physical-ios-expo-go.md) — SDK 57 physical-iOS previews must use the same Expo identity as the device.
