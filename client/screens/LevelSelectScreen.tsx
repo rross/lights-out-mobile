@@ -1,5 +1,11 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, StyleSheet, FlatList, Pressable, Dimensions } from "react-native";
+import {
+  View,
+  StyleSheet,
+  FlatList,
+  Pressable,
+  useWindowDimensions,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -13,10 +19,21 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { ThemedText } from "@/components/ThemedText";
-import { Colors, Spacing, BorderRadius, Fonts, Shadows, GameColors } from "@/constants/theme";
+import {
+  Colors,
+  Spacing,
+  BorderRadius,
+  Fonts,
+  Shadows,
+  GameColors,
+} from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
-import { getCompletedLevels, getCurrentLevel, getSettings } from "@/utils/storage";
+import {
+  getCompletedLevels,
+  getCurrentLevel,
+  getSettings,
+} from "@/utils/storage";
 import { TOTAL_LEVELS, getLevelConfig } from "@/utils/gameLogic";
 import { TEST_MODE_UNLOCK_ALL_LEVELS } from "@/constants/gameConfig";
 
@@ -24,22 +41,30 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-const { width } = Dimensions.get("window");
 const COLUMNS = 4;
 const CARD_GAP = Spacing.sm;
 const HORIZONTAL_PADDING = Spacing.lg;
-const CARD_WIDTH = (width - HORIZONTAL_PADDING * 2 - CARD_GAP * (COLUMNS - 1)) / COLUMNS;
+const MAX_ENTRANCE_DELAY_INDEX = 12;
 
 interface LevelCardProps {
   level: number;
   isCompleted: boolean;
   isUnlocked: boolean;
   stateCount: number;
+  cardWidth: number;
   onPress: () => void;
   index: number;
 }
 
-function LevelCard({ level, isCompleted, isUnlocked, stateCount, onPress, index }: LevelCardProps) {
+function LevelCard({
+  level,
+  isCompleted,
+  isUnlocked,
+  stateCount,
+  cardWidth,
+  onPress,
+  index,
+}: LevelCardProps) {
   const { isDark } = useTheme();
   const scale = useSharedValue(1);
 
@@ -55,20 +80,26 @@ function LevelCard({ level, isCompleted, isUnlocked, stateCount, onPress, index 
     transform: [{ scale: scale.value }],
   }));
 
-  const stateColor = stateCount <= 2 ? GameColors[0] : GameColors[stateCount - 1];
+  const stateColor =
+    stateCount <= 2 ? GameColors[0] : GameColors[stateCount - 1];
   const bgColor = isUnlocked
     ? isDark
       ? Colors.dark.cardSurface
       : Colors.light.cardSurface
     : isDark
-    ? Colors.dark.backgroundSecondary
-    : Colors.light.backgroundSecondary;
+      ? Colors.dark.backgroundSecondary
+      : Colors.light.backgroundSecondary;
 
   return (
-    <Animated.View entering={FadeInUp.delay(index * 20).duration(300)}>
+    <Animated.View
+      entering={FadeInUp.delay(
+        Math.min(index, MAX_ENTRANCE_DELAY_INDEX) * 20,
+      ).duration(300)}
+    >
       <AnimatedPressable
         style={[
           styles.levelCard,
+          { width: cardWidth },
           animatedStyle,
           {
             backgroundColor: bgColor,
@@ -81,10 +112,17 @@ function LevelCard({ level, isCompleted, isUnlocked, stateCount, onPress, index 
         disabled={!isUnlocked}
         testID={`button-level-${level}`}
       >
-        <View style={[styles.stateIndicator, { backgroundColor: stateColor }]} />
+        <View
+          style={[styles.stateIndicator, { backgroundColor: stateColor }]}
+        />
         {isUnlocked ? (
           <>
-            <ThemedText style={[styles.levelNumber, { fontFamily: Fonts.displaySemiBold }]}>
+            <ThemedText
+              style={[
+                styles.levelNumber,
+                { fontFamily: Fonts.displaySemiBold },
+              ]}
+            >
               {level}
             </ThemedText>
             {isCompleted ? (
@@ -97,7 +135,9 @@ function LevelCard({ level, isCompleted, isUnlocked, stateCount, onPress, index 
           <Feather
             name="lock"
             size={20}
-            color={isDark ? Colors.dark.textSecondary : Colors.light.textSecondary}
+            color={
+              isDark ? Colors.dark.textSecondary : Colors.light.textSecondary
+            }
           />
         )}
       </AnimatedPressable>
@@ -106,14 +146,19 @@ function LevelCard({ level, isCompleted, isUnlocked, stateCount, onPress, index 
 }
 
 export default function LevelSelectScreen() {
+  const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
   const { theme, isDark } = useTheme();
-  const [completedLevels, setCompletedLevels] = useState<Set<number>>(new Set());
+  const [completedLevels, setCompletedLevels] = useState<Set<number>>(
+    new Set(),
+  );
   const [currentLevel, setCurrentLevel] = useState(1);
   const [hapticEnabled, setHapticEnabled] = useState(true);
 
   const levels = Array.from({ length: TOTAL_LEVELS }, (_, i) => i + 1);
+  const cardWidth =
+    (width - HORIZONTAL_PADDING * 2 - CARD_GAP * (COLUMNS - 1)) / COLUMNS;
 
   useEffect(() => {
     loadData();
@@ -130,21 +175,24 @@ export default function LevelSelectScreen() {
     setHapticEnabled(settings.hapticEnabled);
   }
 
-  const handleLevelPress = useCallback((level: number) => {
-    if (hapticEnabled) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    navigation.navigate("Game", { level });
-  }, [navigation, hapticEnabled]);
+  const handleLevelPress = useCallback(
+    (level: number) => {
+      if (hapticEnabled) {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
+      navigation.navigate("Game", { level });
+    },
+    [navigation, hapticEnabled],
+  );
 
   const renderItem = useCallback(
     ({ item, index }: { item: number; index: number }) => {
       const isCompleted = completedLevels.has(item);
-       const isUnlocked =
-         TEST_MODE_UNLOCK_ALL_LEVELS ||
-         item === 1 ||
-         completedLevels.has(item - 1) ||
-         item <= currentLevel;
+      const isUnlocked =
+        TEST_MODE_UNLOCK_ALL_LEVELS ||
+        item === 1 ||
+        completedLevels.has(item - 1) ||
+        item <= currentLevel;
       const config = getLevelConfig(item);
 
       return (
@@ -153,20 +201,30 @@ export default function LevelSelectScreen() {
           isCompleted={isCompleted}
           isUnlocked={isUnlocked}
           stateCount={config.states}
+          cardWidth={cardWidth}
           onPress={() => handleLevelPress(item)}
           index={index}
         />
       );
     },
-    [completedLevels, currentLevel, handleLevelPress]
+    [cardWidth, completedLevels, currentLevel, handleLevelPress],
   );
 
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
       {TEST_MODE_UNLOCK_ALL_LEVELS ? (
         <View style={styles.testBanner} testID="test-mode-banner">
-          <Feather name="unlock" size={16} color={isDark ? "#FCD34D" : "#92400E"} />
-          <ThemedText style={[styles.testBannerText, { color: isDark ? "#FCD34D" : "#92400E" }]}>
+          <Feather
+            name="unlock"
+            size={16}
+            color={isDark ? "#FCD34D" : "#92400E"}
+          />
+          <ThemedText
+            style={[
+              styles.testBannerText,
+              { color: isDark ? "#FCD34D" : "#92400E" },
+            ]}
+          >
             Testing mode: all levels unlocked
           </ThemedText>
         </View>
@@ -218,7 +276,6 @@ const styles = StyleSheet.create({
     marginBottom: CARD_GAP,
   },
   levelCard: {
-    width: CARD_WIDTH,
     aspectRatio: 1,
     borderRadius: BorderRadius.sm,
     alignItems: "center",
