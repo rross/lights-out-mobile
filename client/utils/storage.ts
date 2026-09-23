@@ -5,6 +5,7 @@ const STORAGE_KEYS = {
   COMPLETED_LEVELS: 'lightsout_completed_levels',
   SETTINGS: 'lightsout_settings',
   LIVES: 'lightsout_lives',
+  AUDIO_WELCOME_COMPLETED: 'lightsout_audio_welcome_completed',
 };
 
 export const MAX_LIVES = 10;
@@ -77,6 +78,21 @@ export async function getSettings(): Promise<GameSettings> {
 export async function saveSettings(settings: GameSettings): Promise<void> {
   try {
     await AsyncStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+  } catch {
+  }
+}
+
+export async function getAudioWelcomeCompleted(): Promise<boolean> {
+  try {
+    return (await AsyncStorage.getItem(STORAGE_KEYS.AUDIO_WELCOME_COMPLETED)) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+export async function setAudioWelcomeCompleted(): Promise<void> {
+  try {
+    await AsyncStorage.setItem(STORAGE_KEYS.AUDIO_WELCOME_COMPLETED, 'true');
   } catch {
   }
 }

@@ -9,12 +9,17 @@ import React, {
 import { AppState, StyleSheet, View } from "react-native";
 import { setAudioModeAsync, useAudioPlayer } from "expo-audio";
 
-import { DEFAULT_MUSIC_VOLUME, getSettings } from "@/utils/storage";
+import {
+  DEFAULT_MUSIC_VOLUME,
+  getAudioWelcomeCompleted,
+  getSettings,
+} from "@/utils/storage";
 
 const backgroundMusic = require("../../assets/audio/bach-cello-suite-no1-prelude.mp3");
 
 interface BackgroundMusicContextValue {
   applyMusicSettings: (enabled: boolean, volume: number) => void;
+  activateMusicPreferences: (enabled: boolean, volume: number) => void;
   refreshMusicSettings: () => Promise<void>;
 }
 
@@ -28,6 +33,7 @@ export function BackgroundMusicProvider({ children }: PropsWithChildren) {
   const musicPlayer = useAudioPlayer(backgroundMusic);
   const musicEnabledRef = useRef(true);
   const musicVolumeRef = useRef(DEFAULT_MUSIC_VOLUME);
+  const audioWelcomeCompletedRef = useRef(false);
 
   const applyMusicSettings = useCallback(
     (enabled: boolean, volume: number) => {
@@ -48,12 +54,29 @@ export function BackgroundMusicProvider({ children }: PropsWithChildren) {
   );
 
   const refreshMusicSettings = useCallback(async () => {
+    const audioWelcomeCompleted = await getAudioWelcomeCompleted();
     const settings = await getSettings();
-    applyMusicSettings(settings.musicEnabled, settings.musicVolume);
-  }, [applyMusicSettings]);
+    audioWelcomeCompletedRef.current = audioWelcomeCompleted;
+
+    if (audioWelcomeCompleted) {
+      applyMusicSettings(settings.musicEnabled, settings.musicVolume);
+    } else {
+      musicEnabledRef.current = settings.musicEnabled;
+      musicVolumeRef.current = normalizeVolume(settings.musicVolume);
+      musicPlayer.pause();
+    }
+  }, [applyMusicSettings, musicPlayer]);
+
+  const activateMusicPreferences = useCallback(
+    (enabled: boolean, volume: number) => {
+      audioWelcomeCompletedRef.current = true;
+      applyMusicSettings(enabled, volume);
+    },
+    [applyMusicSettings]
+  );
 
   const ensureMusicPlaying = useCallback(() => {
-    if (musicEnabledRef.current) {
+    if (audioWelcomeCompletedRef.current && musicEnabledRef.current) {
       musicPlayer.volume = musicVolumeRef.current;
       musicPlayer.play();
     }
@@ -92,7 +115,11 @@ export function BackgroundMusicProvider({ children }: PropsWithChildren) {
 
   return (
     <BackgroundMusicContext.Provider
-      value={{ applyMusicSettings, refreshMusicSettings }}
+      value={{
+        applyMusicSettings,
+        activateMusicPreferences,
+        refreshMusicSettings,
+      }}
     >
       <View style={styles.container} onPointerDown={ensureMusicPlaying}>
         {children}

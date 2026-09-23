@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, Pressable, Dimensions, Image } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Pressable,
+  Dimensions,
+  Image,
+  Modal,
+  Switch,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -19,8 +27,20 @@ import { ThemedText } from "@/components/ThemedText";
 import { Colors, Spacing, BorderRadius, Fonts, Shadows } from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
-import { getCurrentLevel, getCompletedLevels, getSettings } from "@/utils/storage";
+import {
+  DEFAULT_MUSIC_VOLUME,
+  DEFAULT_SOUND_VOLUME,
+  getAudioWelcomeCompleted,
+  getCurrentLevel,
+  getCompletedLevels,
+  getSettings,
+  saveSettings,
+  setAudioWelcomeCompleted,
+  type GameSettings,
+} from "@/utils/storage";
 import { TOTAL_LEVELS } from "@/utils/gameLogic";
+import { useBackgroundMusic } from "@/contexts/BackgroundMusicContext";
+import Slider from "@react-native-community/slider";
 import appIcon from "../../assets/images/icon.png";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -31,14 +51,25 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
   const { isDark } = useTheme();
+  const { activateMusicPreferences } = useBackgroundMusic();
   const [currentLevel, setCurrentLevel] = useState(1);
   const [completedCount, setCompletedCount] = useState(0);
   const [hapticEnabled, setHapticEnabled] = useState(true);
+  const [showAudioWelcome, setShowAudioWelcome] = useState(false);
+  const [audioPreferences, setAudioPreferences] = useState<
+    Pick<GameSettings, "musicEnabled" | "musicVolume" | "soundEnabled" | "soundVolume">
+  >({
+    musicEnabled: false,
+    musicVolume: DEFAULT_MUSIC_VOLUME,
+    soundEnabled: false,
+    soundVolume: DEFAULT_SOUND_VOLUME,
+  });
 
   const playButtonScale = useSharedValue(1);
 
   useEffect(() => {
     loadProgress();
+    void loadAudioWelcome();
     const unsubscribe = navigation.addListener("focus", loadProgress);
     return unsubscribe;
   }, [navigation]);
@@ -50,6 +81,40 @@ export default function HomeScreen() {
     setCurrentLevel(level);
     setCompletedCount(completed.size);
     setHapticEnabled(settings.hapticEnabled);
+  }
+
+  async function loadAudioWelcome() {
+    const completed = await getAudioWelcomeCompleted();
+    if (!completed) {
+      setShowAudioWelcome(true);
+    }
+  }
+
+  function handleAudioToggle(key: "musicEnabled" | "soundEnabled", value: boolean) {
+    setAudioPreferences((current) => ({ ...current, [key]: value }));
+  }
+
+  function handleAudioVolumeChange(
+    key: "musicVolume" | "soundVolume",
+    value: number
+  ) {
+    setAudioPreferences((current) => ({
+      ...current,
+      [key]: Math.max(0, Math.min(1, value)),
+    }));
+  }
+
+  async function handleSaveAudioPreferences() {
+    const currentSettings = await getSettings();
+    const newSettings: GameSettings = {
+      ...currentSettings,
+      ...audioPreferences,
+    };
+
+    await saveSettings(newSettings);
+    await setAudioWelcomeCompleted();
+    activateMusicPreferences(newSettings.musicEnabled, newSettings.musicVolume);
+    setShowAudioWelcome(false);
   }
 
   function handlePlayPress() {
@@ -183,6 +248,169 @@ export default function HomeScreen() {
           </View>
         </Animated.View>
       </View>
+
+      <Modal
+        visible={showAudioWelcome}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => {}}
+      >
+        <View style={styles.audioModalOverlay}>
+          <View
+            style={[
+              styles.audioModalContent,
+              {
+                backgroundColor: isDark
+                  ? Colors.dark.cardSurface
+                  : Colors.light.cardSurface,
+              },
+            ]}
+          >
+            <View style={styles.audioWelcomeIcon}>
+              <Feather name="music" size={28} color="#FFFFFF" />
+            </View>
+
+            <ThemedText style={[styles.audioModalTitle, { fontFamily: Fonts.display }]}>
+              Welcome to Color Cascade
+            </ThemedText>
+            <ThemedText style={[styles.audioModalDescription, { fontFamily: Fonts.body }]}>
+              Choose how you would like the game to sound. You can change these
+              preferences anytime in Settings.
+            </ThemedText>
+
+            <View style={styles.audioPreferenceGroup}>
+              <View style={styles.audioPreferenceHeader}>
+                <View style={styles.audioPreferenceLabel}>
+                  <Feather
+                    name="music"
+                    size={20}
+                    color={isDark ? Colors.dark.primary : Colors.light.primary}
+                  />
+                  <ThemedText style={{ fontFamily: Fonts.bodyMedium }}>Music</ThemedText>
+                </View>
+                <Switch
+                  value={audioPreferences.musicEnabled}
+                  onValueChange={(value) => handleAudioToggle("musicEnabled", value)}
+                  trackColor={{
+                    false: isDark ? Colors.dark.border : Colors.light.border,
+                    true: isDark ? Colors.dark.primary : Colors.light.primary,
+                  }}
+                  thumbColor="#FFFFFF"
+                  testID="welcome-switch-music"
+                />
+              </View>
+              <View
+                style={[
+                  styles.audioVolumeControl,
+                  !audioPreferences.musicEnabled && styles.audioControlDisabled,
+                ]}
+              >
+                <View style={styles.audioVolumeHeader}>
+                  <ThemedText style={styles.audioVolumeLabel}>Volume</ThemedText>
+                  <ThemedText style={styles.audioVolumeValue}>
+                    {Math.round(audioPreferences.musicVolume * 100)}%
+                  </ThemedText>
+                </View>
+                <Slider
+                  style={styles.audioSlider}
+                  minimumValue={0}
+                  maximumValue={1}
+                  step={0.01}
+                  value={audioPreferences.musicVolume}
+                  disabled={!audioPreferences.musicEnabled}
+                  onValueChange={(value) =>
+                    handleAudioVolumeChange("musicVolume", value)
+                  }
+                  minimumTrackTintColor={
+                    isDark ? Colors.dark.primary : Colors.light.primary
+                  }
+                  maximumTrackTintColor={
+                    isDark ? Colors.dark.border : Colors.light.border
+                  }
+                  thumbTintColor={isDark ? Colors.dark.primary : Colors.light.primary}
+                  testID="welcome-slider-music"
+                />
+              </View>
+            </View>
+
+            <View style={styles.audioPreferenceDivider} />
+
+            <View style={styles.audioPreferenceGroup}>
+              <View style={styles.audioPreferenceHeader}>
+                <View style={styles.audioPreferenceLabel}>
+                  <Feather
+                    name="volume-2"
+                    size={20}
+                    color={isDark ? Colors.dark.primary : Colors.light.primary}
+                  />
+                  <ThemedText style={{ fontFamily: Fonts.bodyMedium }}>
+                    Sound Effects
+                  </ThemedText>
+                </View>
+                <Switch
+                  value={audioPreferences.soundEnabled}
+                  onValueChange={(value) => handleAudioToggle("soundEnabled", value)}
+                  trackColor={{
+                    false: isDark ? Colors.dark.border : Colors.light.border,
+                    true: isDark ? Colors.dark.primary : Colors.light.primary,
+                  }}
+                  thumbColor="#FFFFFF"
+                  testID="welcome-switch-sound"
+                />
+              </View>
+              <View
+                style={[
+                  styles.audioVolumeControl,
+                  !audioPreferences.soundEnabled && styles.audioControlDisabled,
+                ]}
+              >
+                <View style={styles.audioVolumeHeader}>
+                  <ThemedText style={styles.audioVolumeLabel}>Volume</ThemedText>
+                  <ThemedText style={styles.audioVolumeValue}>
+                    {Math.round(audioPreferences.soundVolume * 100)}%
+                  </ThemedText>
+                </View>
+                <Slider
+                  style={styles.audioSlider}
+                  minimumValue={0}
+                  maximumValue={1}
+                  step={0.01}
+                  value={audioPreferences.soundVolume}
+                  disabled={!audioPreferences.soundEnabled}
+                  onValueChange={(value) =>
+                    handleAudioVolumeChange("soundVolume", value)
+                  }
+                  minimumTrackTintColor={
+                    isDark ? Colors.dark.primary : Colors.light.primary
+                  }
+                  maximumTrackTintColor={
+                    isDark ? Colors.dark.border : Colors.light.border
+                  }
+                  thumbTintColor={isDark ? Colors.dark.primary : Colors.light.primary}
+                  testID="welcome-slider-sound"
+                />
+              </View>
+            </View>
+
+            <Pressable
+              style={styles.audioSaveButton}
+              onPress={handleSaveAudioPreferences}
+              testID="welcome-button-save-audio"
+            >
+              <LinearGradient
+                colors={["#6366F1", "#4F46E5"]}
+                style={styles.audioSaveButtonGradient}
+              >
+                <ThemedText style={styles.audioSaveButtonText}>
+                  Save Preferences
+                </ThemedText>
+                <Feather name="arrow-right" size={20} color="#FFFFFF" />
+              </LinearGradient>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </LinearGradient>
   );
 }
@@ -289,5 +517,101 @@ const styles = StyleSheet.create({
   },
   progressValue: {
     fontSize: 24,
+  },
+  audioModalOverlay: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.65)",
+    padding: Spacing.xl,
+  },
+  audioModalContent: {
+    width: "100%",
+    maxWidth: 400,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.xl,
+    alignItems: "center",
+    ...Shadows.medium,
+  },
+  audioWelcomeIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: BorderRadius.full,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#6366F1",
+    marginBottom: Spacing.md,
+  },
+  audioModalTitle: {
+    fontSize: 26,
+    textAlign: "center",
+    marginBottom: Spacing.sm,
+  },
+  audioModalDescription: {
+    fontSize: 14,
+    lineHeight: 20,
+    opacity: 0.72,
+    textAlign: "center",
+    marginBottom: Spacing.xl,
+  },
+  audioPreferenceGroup: {
+    width: "100%",
+  },
+  audioPreferenceHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  audioPreferenceLabel: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+  },
+  audioVolumeControl: {
+    marginTop: Spacing.sm,
+  },
+  audioControlDisabled: {
+    opacity: 0.42,
+  },
+  audioVolumeHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  audioVolumeLabel: {
+    fontSize: 12,
+    opacity: 0.7,
+  },
+  audioVolumeValue: {
+    fontSize: 12,
+    opacity: 0.7,
+  },
+  audioSlider: {
+    width: "100%",
+    height: 34,
+  },
+  audioPreferenceDivider: {
+    width: "100%",
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: "rgba(128, 128, 128, 0.3)",
+    marginVertical: Spacing.md,
+  },
+  audioSaveButton: {
+    width: "100%",
+    marginTop: Spacing.lg,
+    ...Shadows.small,
+  },
+  audioSaveButtonGradient: {
+    minHeight: 52,
+    borderRadius: BorderRadius.lg,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.sm,
+  },
+  audioSaveButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontFamily: Fonts.bodyMedium,
   },
 });

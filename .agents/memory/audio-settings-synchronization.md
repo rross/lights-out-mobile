@@ -20,3 +20,9 @@ Continuous background music should be owned by an app-level provider rather than
 **Why:** Screen-owned players are released or paused during navigation, causing abrupt stops between menus, levels, and completion modals.
 
 **How to apply:** Keep one looping player above the navigator, synchronize it directly from persisted settings, pause it when the app becomes inactive, and retry playback after the first pointer interaction for browser autoplay compatibility.
+
+On a fresh install, audio must remain silent until the player explicitly saves the welcome-dialog preferences.
+
+**Why:** Some players cannot or do not want audio to begin immediately when opening the app.
+
+**How to apply:** Gate global playback behind a persisted onboarding-completion flag, default both music and effects to off in the prompt, and keep later adjustments available in Settings.
