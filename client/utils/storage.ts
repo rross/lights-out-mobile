@@ -1,11 +1,11 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const STORAGE_KEYS = {
-  CURRENT_LEVEL: 'lightsout_current_level',
-  COMPLETED_LEVELS: 'lightsout_completed_levels',
-  SETTINGS: 'lightsout_settings',
-  LIVES: 'lightsout_lives',
-  AUDIO_WELCOME_COMPLETED: 'lightsout_audio_welcome_completed',
+  CURRENT_LEVEL: "lightsout_current_level",
+  COMPLETED_LEVELS: "lightsout_completed_levels",
+  SETTINGS: "lightsout_settings",
+  LIVES: "lightsout_lives",
+  AUDIO_WELCOME_COMPLETED: "lightsout_audio_welcome_completed",
 };
 
 export const MAX_LIVES = 10;
@@ -40,8 +40,7 @@ export async function getCurrentLevel(): Promise<number> {
 export async function setCurrentLevel(level: number): Promise<void> {
   try {
     await AsyncStorage.setItem(STORAGE_KEYS.CURRENT_LEVEL, level.toString());
-  } catch {
-  }
+  } catch {}
 }
 
 export async function getCompletedLevels(): Promise<Set<number>> {
@@ -61,15 +60,19 @@ export async function markLevelCompleted(level: number): Promise<void> {
   try {
     const completed = await getCompletedLevels();
     completed.add(level);
-    await AsyncStorage.setItem(STORAGE_KEYS.COMPLETED_LEVELS, JSON.stringify([...completed]));
-  } catch {
-  }
+    await AsyncStorage.setItem(
+      STORAGE_KEYS.COMPLETED_LEVELS,
+      JSON.stringify([...completed]),
+    );
+  } catch {}
 }
 
 export async function getSettings(): Promise<GameSettings> {
   try {
     const value = await AsyncStorage.getItem(STORAGE_KEYS.SETTINGS);
-    return value ? { ...DEFAULT_SETTINGS, ...JSON.parse(value) } : DEFAULT_SETTINGS;
+    return value
+      ? { ...DEFAULT_SETTINGS, ...JSON.parse(value) }
+      : DEFAULT_SETTINGS;
   } catch {
     return DEFAULT_SETTINGS;
   }
@@ -78,13 +81,15 @@ export async function getSettings(): Promise<GameSettings> {
 export async function saveSettings(settings: GameSettings): Promise<void> {
   try {
     await AsyncStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
-  } catch {
-  }
+  } catch {}
 }
 
 export async function getAudioWelcomeCompleted(): Promise<boolean> {
   try {
-    return (await AsyncStorage.getItem(STORAGE_KEYS.AUDIO_WELCOME_COMPLETED)) === 'true';
+    return (
+      (await AsyncStorage.getItem(STORAGE_KEYS.AUDIO_WELCOME_COMPLETED)) ===
+      "true"
+    );
   } catch {
     return false;
   }
@@ -92,9 +97,8 @@ export async function getAudioWelcomeCompleted(): Promise<boolean> {
 
 export async function setAudioWelcomeCompleted(): Promise<void> {
   try {
-    await AsyncStorage.setItem(STORAGE_KEYS.AUDIO_WELCOME_COMPLETED, 'true');
-  } catch {
-  }
+    await AsyncStorage.setItem(STORAGE_KEYS.AUDIO_WELCOME_COMPLETED, "true");
+  } catch {}
 }
 
 export async function getLives(): Promise<number> {
@@ -109,15 +113,13 @@ export async function getLives(): Promise<number> {
 export async function setLives(lives: number): Promise<void> {
   try {
     await AsyncStorage.setItem(STORAGE_KEYS.LIVES, lives.toString());
-  } catch {
-  }
+  } catch {}
 }
 
 export async function resetLives(): Promise<void> {
   try {
     await AsyncStorage.setItem(STORAGE_KEYS.LIVES, MAX_LIVES.toString());
-  } catch {
-  }
+  } catch {}
 }
 
 export async function resetAllProgress(): Promise<void> {
@@ -126,6 +128,5 @@ export async function resetAllProgress(): Promise<void> {
       STORAGE_KEYS.CURRENT_LEVEL,
       STORAGE_KEYS.COMPLETED_LEVELS,
     ]);
-  } catch {
-  }
+  } catch {}
 }

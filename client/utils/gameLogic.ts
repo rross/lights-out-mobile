@@ -1,18 +1,18 @@
-import levelConfigs from '../data/levelConfigs';
+import levelConfigs from "../data/levelConfigs";
 
 const GRID_SIZE = 12;
 
 export const COLORS: Record<number, string> = {
-  0: '#ffeb3b',
-  1: '#000000',
-  2: '#d81b60',
-  3: '#2196F3',
-  4: '#9c27b0',
-  5: '#ffb3da',
-  6: '#2e7d32',
-  7: '#00bcd4',
-  8: '#ff9800',
-  9: '#7c3aed',
+  0: "#ffeb3b",
+  1: "#000000",
+  2: "#d81b60",
+  3: "#2196F3",
+  4: "#9c27b0",
+  5: "#ffb3da",
+  6: "#2e7d32",
+  7: "#00bcd4",
+  8: "#ff9800",
+  9: "#7c3aed",
 };
 
 export function getColorForState(state: number, level: number): string {
@@ -22,12 +22,17 @@ export function getColorForState(state: number, level: number): string {
   return COLORS[state] || COLORS[1];
 }
 
-export function getLevelConfig(level: number): { moves: number; states: number } {
+export function getLevelConfig(level: number): {
+  moves: number;
+  states: number;
+} {
   return levelConfigs[level] || { moves: 20, states: 2 };
 }
 
 export function createEmptyBoard(): number[][] {
-  return Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(1));
+  return Array(GRID_SIZE)
+    .fill(null)
+    .map(() => Array(GRID_SIZE).fill(1));
 }
 
 function buildStateOrder(states: number): number[] {
@@ -42,7 +47,7 @@ function getNextState(current: number, states: number): number {
   if (states === 2) {
     return 1 - current;
   }
-  
+
   const stateOrder = buildStateOrder(states);
   const currentIndex = stateOrder.indexOf(current);
   if (currentIndex === -1) return current;
@@ -53,18 +58,23 @@ function getPrevState(current: number, states: number): number {
   if (states === 2) {
     return 1 - current;
   }
-  
+
   const stateOrder = buildStateOrder(states);
   const currentIndex = stateOrder.indexOf(current);
   if (currentIndex === -1) return current;
   return stateOrder[(currentIndex - 1 + stateOrder.length) % stateOrder.length];
 }
 
-export function toggleCell(board: number[][], row: number, col: number, level: number): number[][] {
-  const newBoard = board.map(r => [...r]);
+export function toggleCell(
+  board: number[][],
+  row: number,
+  col: number,
+  level: number,
+): number[][] {
+  const newBoard = board.map((r) => [...r]);
   const config = getLevelConfig(level);
   const states = config.states;
-  
+
   if (row >= 0 && row < GRID_SIZE && col >= 0 && col < GRID_SIZE) {
     const current = newBoard[row][col];
     newBoard[row][col] = getNextState(current, states);
@@ -72,38 +82,70 @@ export function toggleCell(board: number[][], row: number, col: number, level: n
   return newBoard;
 }
 
-export function applyMove(board: number[][], row: number, col: number, level: number): number[][] {
-  let newBoard = board.map(r => [...r]);
-  
-  const directions = [[0, 0], [0, 1], [0, -1], [1, 0], [-1, 0]];
-  
+export function applyMove(
+  board: number[][],
+  row: number,
+  col: number,
+  level: number,
+): number[][] {
+  let newBoard = board.map((r) => [...r]);
+
+  const directions = [
+    [0, 0],
+    [0, 1],
+    [0, -1],
+    [1, 0],
+    [-1, 0],
+  ];
+
   for (const [dx, dy] of directions) {
     const newRow = row + dx;
     const newCol = col + dy;
-    if (newRow >= 0 && newRow < GRID_SIZE && newCol >= 0 && newCol < GRID_SIZE) {
+    if (
+      newRow >= 0 &&
+      newRow < GRID_SIZE &&
+      newCol >= 0 &&
+      newCol < GRID_SIZE
+    ) {
       newBoard = toggleCell(newBoard, newRow, newCol, level);
     }
   }
-  
+
   return newBoard;
 }
 
-function applyReverseMove(board: number[][], row: number, col: number, level: number): number[][] {
-  const newBoard = board.map(r => [...r]);
+function applyReverseMove(
+  board: number[][],
+  row: number,
+  col: number,
+  level: number,
+): number[][] {
+  const newBoard = board.map((r) => [...r]);
   const config = getLevelConfig(level);
   const states = config.states;
-  
-  const directions = [[0, 0], [0, 1], [0, -1], [1, 0], [-1, 0]];
-  
+
+  const directions = [
+    [0, 0],
+    [0, 1],
+    [0, -1],
+    [1, 0],
+    [-1, 0],
+  ];
+
   for (const [dx, dy] of directions) {
     const newRow = row + dx;
     const newCol = col + dy;
-    if (newRow >= 0 && newRow < GRID_SIZE && newCol >= 0 && newCol < GRID_SIZE) {
+    if (
+      newRow >= 0 &&
+      newRow < GRID_SIZE &&
+      newCol >= 0 &&
+      newCol < GRID_SIZE
+    ) {
       const current = newBoard[newRow][newCol];
       newBoard[newRow][newCol] = getPrevState(current, states);
     }
   }
-  
+
   return newBoard;
 }
 
@@ -121,12 +163,11 @@ export function checkWin(board: number[][]): boolean {
 export function generateSolvableBoard(level: number): number[][] {
   const config = getLevelConfig(level);
   const targetMoves = config.moves;
-  
+
   let board = createEmptyBoard();
-  
-  const numReverseMoves = targetMoves < 20 
-    ? targetMoves 
-    : Math.ceil(targetMoves * 0.9);
+
+  const numReverseMoves =
+    targetMoves < 20 ? targetMoves : Math.ceil(targetMoves * 0.9);
 
   // Random moves alone may not reach the highest available color, so reserve
   // enough reverse moves to reach it at one anchor cell. This guarantees that
@@ -158,13 +199,13 @@ export function generateSolvableBoard(level: number): number[][] {
 
     board = applyReverseMove(board, row, col, level);
   }
-  
+
   if (checkWin(board)) {
     const row = Math.floor(Math.random() * GRID_SIZE);
     const col = Math.floor(Math.random() * GRID_SIZE);
     board = applyReverseMove(board, row, col, level);
   }
-  
+
   return board;
 }
 

@@ -3,7 +3,6 @@ import {
   View,
   StyleSheet,
   Pressable,
-  Dimensions,
   Image,
   Modal,
   Switch,
@@ -19,12 +18,17 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   withSequence,
-  withDelay,
   FadeIn,
 } from "react-native-reanimated";
 
 import { ThemedText } from "@/components/ThemedText";
-import { Colors, Spacing, BorderRadius, Fonts, Shadows } from "@/constants/theme";
+import {
+  Colors,
+  Spacing,
+  BorderRadius,
+  Fonts,
+  Shadows,
+} from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 import {
@@ -57,7 +61,10 @@ export default function HomeScreen() {
   const [hapticEnabled, setHapticEnabled] = useState(true);
   const [showAudioWelcome, setShowAudioWelcome] = useState(false);
   const [audioPreferences, setAudioPreferences] = useState<
-    Pick<GameSettings, "musicEnabled" | "musicVolume" | "soundEnabled" | "soundVolume">
+    Pick<
+      GameSettings,
+      "musicEnabled" | "musicVolume" | "soundEnabled" | "soundVolume"
+    >
   >({
     musicEnabled: false,
     musicVolume: DEFAULT_MUSIC_VOLUME,
@@ -66,13 +73,6 @@ export default function HomeScreen() {
   });
 
   const playButtonScale = useSharedValue(1);
-
-  useEffect(() => {
-    loadProgress();
-    void loadAudioWelcome();
-    const unsubscribe = navigation.addListener("focus", loadProgress);
-    return unsubscribe;
-  }, [navigation]);
 
   async function loadProgress() {
     const level = await getCurrentLevel();
@@ -90,13 +90,25 @@ export default function HomeScreen() {
     }
   }
 
-  function handleAudioToggle(key: "musicEnabled" | "soundEnabled", value: boolean) {
+  useEffect(() => {
+    // AsyncStorage hydration updates state only after its reads resolve.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadProgress();
+    void loadAudioWelcome();
+    const unsubscribe = navigation.addListener("focus", loadProgress);
+    return unsubscribe;
+  }, [navigation]);
+
+  function handleAudioToggle(
+    key: "musicEnabled" | "soundEnabled",
+    value: boolean,
+  ) {
     setAudioPreferences((current) => ({ ...current, [key]: value }));
   }
 
   function handleAudioVolumeChange(
     key: "musicVolume" | "soundVolume",
-    value: number
+    value: number,
   ) {
     setAudioPreferences((current) => ({
       ...current,
@@ -123,7 +135,7 @@ export default function HomeScreen() {
     }
     playButtonScale.value = withSequence(
       withSpring(0.95, { damping: 15 }),
-      withSpring(1, { damping: 15 })
+      withSpring(1, { damping: 15 }),
     );
     navigation.navigate("Game", { level: currentLevel });
   }
@@ -154,12 +166,14 @@ export default function HomeScreen() {
   }));
 
   const gradientColors = isDark
-    ? ["#1F2937", "#111827"] as const
-    : ["#EEF2FF", "#F8F9FA"] as const;
+    ? (["#1F2937", "#111827"] as const)
+    : (["#EEF2FF", "#F8F9FA"] as const);
 
   return (
     <LinearGradient colors={gradientColors} style={styles.container}>
-      <View style={[styles.content, { paddingTop: insets.top + Spacing["3xl"] }]}>
+      <View
+        style={[styles.content, { paddingTop: insets.top + Spacing["3xl"] }]}
+      >
         <Pressable
           style={styles.settingsButton}
           onPress={handleSettingsPress}
@@ -173,7 +187,10 @@ export default function HomeScreen() {
           />
         </Pressable>
 
-        <Animated.View entering={FadeIn.delay(100).duration(600)} style={styles.header}>
+        <Animated.View
+          entering={FadeIn.delay(100).duration(600)}
+          style={styles.header}
+        >
           <Image source={appIcon} style={styles.appIcon} />
           <ThemedText style={[styles.title, { fontFamily: Fonts.display }]}>
             Color Cascade
@@ -183,7 +200,10 @@ export default function HomeScreen() {
           </ThemedText>
         </Animated.View>
 
-        <Animated.View entering={FadeIn.delay(300).duration(600)} style={styles.centerContent}>
+        <Animated.View
+          entering={FadeIn.delay(300).duration(600)}
+          style={styles.centerContent}
+        >
           <AnimatedPressable
             style={[styles.playButton, playButtonAnimatedStyle]}
             onPress={handlePlayPress}
@@ -203,7 +223,12 @@ export default function HomeScreen() {
             onPress={handleLevelSelectPress}
             testID="button-level-select"
           >
-            <ThemedText style={[styles.levelSelectText, { color: isDark ? Colors.dark.primary : Colors.light.primary }]}>
+            <ThemedText
+              style={[
+                styles.levelSelectText,
+                { color: isDark ? Colors.dark.primary : Colors.light.primary },
+              ]}
+            >
               Select Level
             </ThemedText>
           </Pressable>
@@ -229,20 +254,64 @@ export default function HomeScreen() {
           </Pressable>
         </Animated.View>
 
-        <Animated.View entering={FadeIn.delay(500).duration(600)} style={[styles.progressContainer, { marginBottom: insets.bottom + Spacing["2xl"] }]}>
-          <View style={[styles.progressCard, { backgroundColor: isDark ? Colors.dark.cardSurface : Colors.light.cardSurface }]}>
-            <ThemedText style={[styles.progressLabel, { fontFamily: Fonts.bodyMedium }]}>
+        <Animated.View
+          entering={FadeIn.delay(500).duration(600)}
+          style={[
+            styles.progressContainer,
+            { marginBottom: insets.bottom + Spacing["2xl"] },
+          ]}
+        >
+          <View
+            style={[
+              styles.progressCard,
+              {
+                backgroundColor: isDark
+                  ? Colors.dark.cardSurface
+                  : Colors.light.cardSurface,
+              },
+            ]}
+          >
+            <ThemedText
+              style={[styles.progressLabel, { fontFamily: Fonts.bodyMedium }]}
+            >
               Current Level
             </ThemedText>
-            <ThemedText style={[styles.progressValue, { fontFamily: Fonts.displaySemiBold, color: isDark ? Colors.dark.primary : Colors.light.primary }]}>
+            <ThemedText
+              style={[
+                styles.progressValue,
+                {
+                  fontFamily: Fonts.displaySemiBold,
+                  color: isDark ? Colors.dark.primary : Colors.light.primary,
+                },
+              ]}
+            >
               {currentLevel}
             </ThemedText>
           </View>
-          <View style={[styles.progressCard, { backgroundColor: isDark ? Colors.dark.cardSurface : Colors.light.cardSurface }]}>
-            <ThemedText style={[styles.progressLabel, { fontFamily: Fonts.bodyMedium }]}>
+          <View
+            style={[
+              styles.progressCard,
+              {
+                backgroundColor: isDark
+                  ? Colors.dark.cardSurface
+                  : Colors.light.cardSurface,
+              },
+            ]}
+          >
+            <ThemedText
+              style={[styles.progressLabel, { fontFamily: Fonts.bodyMedium }]}
+            >
               Completed
             </ThemedText>
-            <ThemedText style={[styles.progressValue, { fontFamily: Fonts.displaySemiBold, color: isDark ? Colors.dark.success : Colors.light.success }]}>
+            <ThemedText
+              style={[
+                styles.progressValue,
+                {
+                  fontFamily: Fonts.displaySemiBold,
+                  color: isDark ? Colors.dark.success : Colors.light.success,
+                },
+              ]}
+            >
               {completedCount}/{TOTAL_LEVELS}
             </ThemedText>
           </View>
@@ -271,10 +340,14 @@ export default function HomeScreen() {
               <Feather name="music" size={28} color="#FFFFFF" />
             </View>
 
-            <ThemedText style={[styles.audioModalTitle, { fontFamily: Fonts.display }]}>
+            <ThemedText
+              style={[styles.audioModalTitle, { fontFamily: Fonts.display }]}
+            >
               Welcome to Color Cascade
             </ThemedText>
-            <ThemedText style={[styles.audioModalDescription, { fontFamily: Fonts.body }]}>
+            <ThemedText
+              style={[styles.audioModalDescription, { fontFamily: Fonts.body }]}
+            >
               Choose how you would like the game to sound. You can change these
               preferences anytime in Settings.
             </ThemedText>
@@ -287,11 +360,15 @@ export default function HomeScreen() {
                     size={20}
                     color={isDark ? Colors.dark.primary : Colors.light.primary}
                   />
-                  <ThemedText style={{ fontFamily: Fonts.bodyMedium }}>Music</ThemedText>
+                  <ThemedText style={{ fontFamily: Fonts.bodyMedium }}>
+                    Music
+                  </ThemedText>
                 </View>
                 <Switch
                   value={audioPreferences.musicEnabled}
-                  onValueChange={(value) => handleAudioToggle("musicEnabled", value)}
+                  onValueChange={(value) =>
+                    handleAudioToggle("musicEnabled", value)
+                  }
                   trackColor={{
                     false: isDark ? Colors.dark.border : Colors.light.border,
                     true: isDark ? Colors.dark.primary : Colors.light.primary,
@@ -307,7 +384,9 @@ export default function HomeScreen() {
                 ]}
               >
                 <View style={styles.audioVolumeHeader}>
-                  <ThemedText style={styles.audioVolumeLabel}>Volume</ThemedText>
+                  <ThemedText style={styles.audioVolumeLabel}>
+                    Volume
+                  </ThemedText>
                   <ThemedText style={styles.audioVolumeValue}>
                     {Math.round(audioPreferences.musicVolume * 100)}%
                   </ThemedText>
@@ -328,7 +407,9 @@ export default function HomeScreen() {
                   maximumTrackTintColor={
                     isDark ? Colors.dark.border : Colors.light.border
                   }
-                  thumbTintColor={isDark ? Colors.dark.primary : Colors.light.primary}
+                  thumbTintColor={
+                    isDark ? Colors.dark.primary : Colors.light.primary
+                  }
                   testID="welcome-slider-music"
                 />
               </View>
@@ -350,7 +431,9 @@ export default function HomeScreen() {
                 </View>
                 <Switch
                   value={audioPreferences.soundEnabled}
-                  onValueChange={(value) => handleAudioToggle("soundEnabled", value)}
+                  onValueChange={(value) =>
+                    handleAudioToggle("soundEnabled", value)
+                  }
                   trackColor={{
                     false: isDark ? Colors.dark.border : Colors.light.border,
                     true: isDark ? Colors.dark.primary : Colors.light.primary,
@@ -366,7 +449,9 @@ export default function HomeScreen() {
                 ]}
               >
                 <View style={styles.audioVolumeHeader}>
-                  <ThemedText style={styles.audioVolumeLabel}>Volume</ThemedText>
+                  <ThemedText style={styles.audioVolumeLabel}>
+                    Volume
+                  </ThemedText>
                   <ThemedText style={styles.audioVolumeValue}>
                     {Math.round(audioPreferences.soundVolume * 100)}%
                   </ThemedText>
@@ -387,7 +472,9 @@ export default function HomeScreen() {
                   maximumTrackTintColor={
                     isDark ? Colors.dark.border : Colors.light.border
                   }
-                  thumbTintColor={isDark ? Colors.dark.primary : Colors.light.primary}
+                  thumbTintColor={
+                    isDark ? Colors.dark.primary : Colors.light.primary
+                  }
                   testID="welcome-slider-sound"
                 />
               </View>
@@ -414,8 +501,6 @@ export default function HomeScreen() {
     </LinearGradient>
   );
 }
-
-const { width } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
   container: {

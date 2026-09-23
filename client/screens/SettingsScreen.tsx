@@ -6,7 +6,13 @@ import * as Haptics from "expo-haptics";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { Colors, Spacing, BorderRadius, Fonts, Shadows } from "@/constants/theme";
+import {
+  Colors,
+  Spacing,
+  BorderRadius,
+  Fonts,
+  Shadows,
+} from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { useBackgroundMusic } from "@/contexts/BackgroundMusicContext";
 import {
@@ -31,14 +37,16 @@ export default function SettingsScreen() {
     soundVolume: DEFAULT_SOUND_VOLUME,
   });
 
-  useEffect(() => {
-    loadSettings();
-  }, []);
-
   async function loadSettings() {
     const savedSettings = await getSettings();
     setSettings(savedSettings);
   }
+
+  useEffect(() => {
+    // AsyncStorage hydration updates state only after its read resolves.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadSettings();
+  }, []);
 
   async function handleToggleHaptic(value: boolean) {
     if (value) {
@@ -72,7 +80,10 @@ export default function SettingsScreen() {
     return Math.max(0, Math.min(1, value));
   }
 
-  function handleVolumeChange(key: "musicVolume" | "soundVolume", value: number) {
+  function handleVolumeChange(
+    key: "musicVolume" | "soundVolume",
+    value: number,
+  ) {
     const nextValue = normalizeVolume(value);
     setSettings((current) => ({ ...current, [key]: nextValue }));
 
@@ -81,7 +92,10 @@ export default function SettingsScreen() {
     }
   }
 
-  async function handleVolumeComplete(key: "musicVolume" | "soundVolume", value: number) {
+  async function handleVolumeComplete(
+    key: "musicVolume" | "soundVolume",
+    value: number,
+  ) {
     const nextValue = normalizeVolume(value);
     const storedSettings = await getSettings();
     const newSettings = { ...storedSettings, [key]: nextValue };
@@ -108,18 +122,22 @@ export default function SettingsScreen() {
           onPress: async () => {
             await resetAllProgress();
             if (settings.hapticEnabled) {
-              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              Haptics.notificationAsync(
+                Haptics.NotificationFeedbackType.Success,
+              );
             }
             Alert.alert("Progress Reset", "All your progress has been reset.");
           },
         },
-      ]
+      ],
     );
   }
 
   return (
     <ThemedView style={styles.container}>
-      <View style={[styles.content, { paddingBottom: insets.bottom + Spacing.xl }]}>
+      <View
+        style={[styles.content, { paddingBottom: insets.bottom + Spacing.xl }]}
+      >
         <View style={[styles.section, { backgroundColor: theme.cardSurface }]}>
           <View style={styles.settingRow}>
             <View style={styles.settingInfo}>
@@ -128,7 +146,9 @@ export default function SettingsScreen() {
                 size={22}
                 color={isDark ? Colors.dark.primary : Colors.light.primary}
               />
-              <ThemedText style={[styles.settingLabel, { fontFamily: Fonts.bodyMedium }]}>
+              <ThemedText
+                style={[styles.settingLabel, { fontFamily: Fonts.bodyMedium }]}
+              >
                 Haptic Feedback
               </ThemedText>
             </View>
@@ -153,7 +173,9 @@ export default function SettingsScreen() {
                 size={22}
                 color={isDark ? Colors.dark.primary : Colors.light.primary}
               />
-              <ThemedText style={[styles.settingLabel, { fontFamily: Fonts.bodyMedium }]}>
+              <ThemedText
+                style={[styles.settingLabel, { fontFamily: Fonts.bodyMedium }]}
+              >
                 Sound Effects
               </ThemedText>
             </View>
@@ -173,10 +195,14 @@ export default function SettingsScreen() {
 
           <View style={styles.volumeControl}>
             <View style={styles.volumeHeader}>
-              <ThemedText style={[styles.volumeLabel, { fontFamily: Fonts.bodyMedium }]}>
+              <ThemedText
+                style={[styles.volumeLabel, { fontFamily: Fonts.bodyMedium }]}
+              >
                 Sound Effects Volume
               </ThemedText>
-              <ThemedText style={[styles.volumeValue, { color: theme.textSecondary }]}>
+              <ThemedText
+                style={[styles.volumeValue, { color: theme.textSecondary }]}
+              >
                 {Math.round(settings.soundVolume * 100)}%
               </ThemedText>
             </View>
@@ -186,11 +212,21 @@ export default function SettingsScreen() {
               maximumValue={1}
               step={0.01}
               value={settings.soundVolume}
-              onValueChange={(value) => handleVolumeChange("soundVolume", value)}
-              onSlidingComplete={(value) => handleVolumeComplete("soundVolume", value)}
-              minimumTrackTintColor={isDark ? Colors.dark.primary : Colors.light.primary}
-              maximumTrackTintColor={isDark ? Colors.dark.border : Colors.light.border}
-              thumbTintColor={isDark ? Colors.dark.primary : Colors.light.primary}
+              onValueChange={(value) =>
+                handleVolumeChange("soundVolume", value)
+              }
+              onSlidingComplete={(value) =>
+                handleVolumeComplete("soundVolume", value)
+              }
+              minimumTrackTintColor={
+                isDark ? Colors.dark.primary : Colors.light.primary
+              }
+              maximumTrackTintColor={
+                isDark ? Colors.dark.border : Colors.light.border
+              }
+              thumbTintColor={
+                isDark ? Colors.dark.primary : Colors.light.primary
+              }
               testID="slider-sound-volume"
             />
           </View>
@@ -204,7 +240,9 @@ export default function SettingsScreen() {
                 size={22}
                 color={isDark ? Colors.dark.primary : Colors.light.primary}
               />
-              <ThemedText style={[styles.settingLabel, { fontFamily: Fonts.bodyMedium }]}>
+              <ThemedText
+                style={[styles.settingLabel, { fontFamily: Fonts.bodyMedium }]}
+              >
                 Music
               </ThemedText>
             </View>
@@ -222,10 +260,14 @@ export default function SettingsScreen() {
 
           <View style={styles.volumeControl}>
             <View style={styles.volumeHeader}>
-              <ThemedText style={[styles.volumeLabel, { fontFamily: Fonts.bodyMedium }]}>
+              <ThemedText
+                style={[styles.volumeLabel, { fontFamily: Fonts.bodyMedium }]}
+              >
                 Music Volume
               </ThemedText>
-              <ThemedText style={[styles.volumeValue, { color: theme.textSecondary }]}>
+              <ThemedText
+                style={[styles.volumeValue, { color: theme.textSecondary }]}
+              >
                 {Math.round(settings.musicVolume * 100)}%
               </ThemedText>
             </View>
@@ -235,11 +277,21 @@ export default function SettingsScreen() {
               maximumValue={1}
               step={0.01}
               value={settings.musicVolume}
-              onValueChange={(value) => handleVolumeChange("musicVolume", value)}
-              onSlidingComplete={(value) => handleVolumeComplete("musicVolume", value)}
-              minimumTrackTintColor={isDark ? Colors.dark.primary : Colors.light.primary}
-              maximumTrackTintColor={isDark ? Colors.dark.border : Colors.light.border}
-              thumbTintColor={isDark ? Colors.dark.primary : Colors.light.primary}
+              onValueChange={(value) =>
+                handleVolumeChange("musicVolume", value)
+              }
+              onSlidingComplete={(value) =>
+                handleVolumeComplete("musicVolume", value)
+              }
+              minimumTrackTintColor={
+                isDark ? Colors.dark.primary : Colors.light.primary
+              }
+              maximumTrackTintColor={
+                isDark ? Colors.dark.border : Colors.light.border
+              }
+              thumbTintColor={
+                isDark ? Colors.dark.primary : Colors.light.primary
+              }
               testID="slider-music-volume"
             />
           </View>
@@ -253,15 +305,23 @@ export default function SettingsScreen() {
           >
             <View style={styles.settingInfo}>
               <Feather name="trash-2" size={22} color="#EF4444" />
-              <ThemedText style={[styles.dangerLabel, { fontFamily: Fonts.bodyMedium }]}>
+              <ThemedText
+                style={[styles.dangerLabel, { fontFamily: Fonts.bodyMedium }]}
+              >
                 Reset All Progress
               </ThemedText>
             </View>
-            <Feather name="chevron-right" size={20} color={theme.textSecondary} />
+            <Feather
+              name="chevron-right"
+              size={20}
+              color={theme.textSecondary}
+            />
           </Pressable>
         </View>
 
-        <ThemedText style={[styles.versionText, { color: theme.textSecondary }]}>
+        <ThemedText
+          style={[styles.versionText, { color: theme.textSecondary }]}
+        >
           Lights Out Color Cascade v1.0.0
         </ThemedText>
       </View>

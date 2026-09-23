@@ -1,0 +1,8 @@
+.cache/
+.expo/
+.local/
+.upm/
+attached_assets/
+dist/
+server_dist/
+static-build/

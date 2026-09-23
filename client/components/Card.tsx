@@ -64,10 +64,14 @@ export function Card({
   }));
 
   const handlePressIn = () => {
+    // Reanimated shared values are intentionally mutated by interaction handlers.
+    // eslint-disable-next-line react-hooks/immutability
     scale.value = withSpring(0.98, springConfig);
   };
 
   const handlePressOut = () => {
+    // Reanimated shared values are intentionally mutated by interaction handlers.
+    // eslint-disable-next-line react-hooks/immutability
     scale.value = withSpring(1, springConfig);
   };
 

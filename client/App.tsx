@@ -12,10 +12,7 @@ import {
   Fredoka_600SemiBold,
   Fredoka_700Bold,
 } from "@expo-google-fonts/fredoka";
-import {
-  Inter_400Regular,
-  Inter_500Medium,
-} from "@expo-google-fonts/inter";
+import { Inter_400Regular, Inter_500Medium } from "@expo-google-fonts/inter";
 
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/query-client";

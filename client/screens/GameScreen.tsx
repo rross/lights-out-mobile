@@ -1,7 +1,25 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { View, StyleSheet, Pressable, useWindowDimensions, Modal, Image } from "react-native";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
+import {
+  View,
+  StyleSheet,
+  Pressable,
+  useWindowDimensions,
+  Modal,
+  Image,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation, useRoute, RouteProp, useFocusEffect } from "@react-navigation/native";
+import {
+  useNavigation,
+  useRoute,
+  RouteProp,
+  useFocusEffect,
+} from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { Feather } from "@expo/vector-icons";
@@ -15,12 +33,17 @@ import Animated, {
   withTiming,
   withSequence,
   FadeIn,
-  FadeInDown,
 } from "react-native-reanimated";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { Colors, Spacing, BorderRadius, Fonts, Shadows } from "@/constants/theme";
+import {
+  Colors,
+  Spacing,
+  BorderRadius,
+  Fonts,
+  Shadows,
+} from "@/constants/theme";
 import { useTheme } from "@/hooks/useTheme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 import {
@@ -70,7 +93,16 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
 }
 
 function rgbToHex(r: number, g: number, b: number): string {
-  return "#" + [r, g, b].map((x) => Math.max(0, Math.min(255, Math.round(x))).toString(16).padStart(2, "0")).join("");
+  return (
+    "#" +
+    [r, g, b]
+      .map((x) =>
+        Math.max(0, Math.min(255, Math.round(x)))
+          .toString(16)
+          .padStart(2, "0"),
+      )
+      .join("")
+  );
 }
 
 function adjustBrightness(hex: string, percent: number): string {
@@ -78,13 +110,17 @@ function adjustBrightness(hex: string, percent: number): string {
   return rgbToHex(
     r + (255 - r) * (percent / 100),
     g + (255 - g) * (percent / 100),
-    b + (255 - b) * (percent / 100)
+    b + (255 - b) * (percent / 100),
   );
 }
 
 function darkenColor(hex: string, percent: number): string {
   const { r, g, b } = hexToRgb(hex);
-  return rgbToHex(r * (1 - percent / 100), g * (1 - percent / 100), b * (1 - percent / 100));
+  return rgbToHex(
+    r * (1 - percent / 100),
+    g * (1 - percent / 100),
+    b * (1 - percent / 100),
+  );
 }
 
 interface CellProps {
@@ -105,7 +141,11 @@ interface StoneMark {
   color: string;
 }
 
-function StoneTexture({ row, col, state }: Pick<CellProps, "row" | "col" | "state">) {
+function StoneTexture({
+  row,
+  col,
+  state,
+}: Pick<CellProps, "row" | "col" | "state">) {
   // Use the cell coordinates as a stable seed so the stone pattern varies across
   // the board without changing on every render.
   const seed = Math.abs(row * 31 + col * 17 + state * 13);
@@ -169,7 +209,7 @@ function StoneTexture({ row, col, state }: Pick<CellProps, "row" | "col" | "stat
 function Cell({ row, col, state, level, cellSize, onPress }: CellProps) {
   const scale = useSharedValue(1);
   const baseColor = getColorForState(state, level);
-  
+
   // Add a little more depth while keeping the transitions soft.
   const edgeColor = darkenColor(baseColor, 18);
   const centerColor = adjustBrightness(baseColor, 14);
@@ -188,28 +228,42 @@ function Cell({ row, col, state, level, cellSize, onPress }: CellProps) {
 
   return (
     <AnimatedPressable
-      style={[styles.cell, { width: cellSize, height: cellSize }, animatedStyle]}
+      style={[
+        styles.cell,
+        { width: cellSize, height: cellSize },
+        animatedStyle,
+      ]}
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       testID={`cell-${row}-${col}`}
     >
       <LinearGradient
-        colors={[edgeColor, baseColor, centerColor, baseColor, edgeColor] as const}
+        colors={
+          [edgeColor, baseColor, centerColor, baseColor, edgeColor] as const
+        }
         locations={[0, 0.2, 0.5, 0.8, 1]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.cellGradient}
       >
         <LinearGradient
-          colors={[edgeColor + "50", "transparent", "transparent", "transparent", edgeColor + "50"] as const}
+          colors={
+            [
+              edgeColor + "50",
+              "transparent",
+              "transparent",
+              "transparent",
+              edgeColor + "50",
+            ] as const
+          }
           locations={[0, 0.2, 0.5, 0.8, 1]}
           start={{ x: 1, y: 0 }}
           end={{ x: 0, y: 1 }}
           style={styles.cellGradient}
         />
       </LinearGradient>
-        <StoneTexture row={row} col={col} state={state} />
+      <StoneTexture row={row} col={col} state={state} />
     </AnimatedPressable>
   );
 }
@@ -227,7 +281,9 @@ function ColorLegendSwatch({ state, level, size }: ColorLegendSwatchProps) {
 
   return (
     <LinearGradient
-      colors={[edgeColor, baseColor, centerColor, baseColor, edgeColor] as const}
+      colors={
+        [edgeColor, baseColor, centerColor, baseColor, edgeColor] as const
+      }
       locations={[0, 0.2, 0.5, 0.8, 1]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
@@ -273,9 +329,13 @@ export default function GameScreen() {
     const isLandscape = width > height;
     // Reserved vertical space: header + moves counter block + bottom buttons + breathing room
     const reservedHeight = headerHeight + (isLandscape ? 160 : 200);
-    const availableHeight = height - insets.top - insets.bottom - reservedHeight;
-    const byHeight = (availableHeight - CELL_GAP * (GRID_SIZE_EXPORT - 1)) / GRID_SIZE_EXPORT;
-    const byWidth = (width - GRID_PADDING * 2 - CELL_GAP * (GRID_SIZE_EXPORT - 1)) / GRID_SIZE_EXPORT;
+    const availableHeight =
+      height - insets.top - insets.bottom - reservedHeight;
+    const byHeight =
+      (availableHeight - CELL_GAP * (GRID_SIZE_EXPORT - 1)) / GRID_SIZE_EXPORT;
+    const byWidth =
+      (width - GRID_PADDING * 2 - CELL_GAP * (GRID_SIZE_EXPORT - 1)) /
+      GRID_SIZE_EXPORT;
     return Math.max(4, Math.floor(Math.min(byWidth, byHeight)));
   }, [width, height, headerHeight, insets.top, insets.bottom]);
 
@@ -286,9 +346,12 @@ export default function GameScreen() {
       Array.from({ length: config.states }, (_, state) => state)
         .reverse()
         .filter((state) => state !== 1),
-    [config.states]
+    [config.states],
   );
-  const legendSwatchSize = Math.max(16, Math.min(30, Math.round(cellSize * 0.8)));
+  const legendSwatchSize = Math.max(
+    16,
+    Math.min(30, Math.round(cellSize * 0.8)),
+  );
 
   const movesScale = useSharedValue(1);
 
@@ -298,12 +361,12 @@ export default function GameScreen() {
     });
     initGame();
     loadLives();
-  }, [level]);
+  }, [level, navigation]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useFocusEffect(
     useCallback(() => {
       void loadSettings();
-    }, [])
+    }, []),
   );
 
   useEffect(() => {
@@ -333,11 +396,14 @@ export default function GameScreen() {
   function playSoundEffect(player: AudioPlayer) {
     if (!soundEnabled) return;
 
-    void player.seekTo(0).then(() => {
-      player.play();
-    }).catch((error) => {
-      console.warn("Unable to play sound effect", error);
-    });
+    void player
+      .seekTo(0)
+      .then(() => {
+        player.play();
+      })
+      .catch((error) => {
+        console.warn("Unable to play sound effect", error);
+      });
   }
 
   async function loadLives() {
@@ -357,48 +423,41 @@ export default function GameScreen() {
     setShowGameOverModal(false);
   }
 
-  const handleCellPress = useCallback(
-    (row: number, col: number) => {
-      if (movesRemaining <= 0 || showWinModal || showFailModal || showGameOverModal) return;
+  function handleCellPress(row: number, col: number) {
+    if (
+      movesRemaining <= 0 ||
+      showWinModal ||
+      showFailModal ||
+      showGameOverModal
+    )
+      return;
 
-      if (hapticEnabled) {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      }
-      playSoundEffect(cellTapPlayer);
+    if (hapticEnabled) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    playSoundEffect(cellTapPlayer);
 
-      setLastBoard(board);
-      setCanUndo(true);
+    setLastBoard(board);
+    setCanUndo(true);
 
-      const newBoard = applyMove(board, row, col, level);
-      setBoard(newBoard);
+    const newBoard = applyMove(board, row, col, level);
+    setBoard(newBoard);
 
-      const newMovesRemaining = movesRemaining - 1;
-      setMovesRemaining(newMovesRemaining);
-      movesUsedRef.current += 1;
+    const newMovesRemaining = movesRemaining - 1;
+    setMovesRemaining(newMovesRemaining);
+    movesUsedRef.current += 1;
 
-      movesScale.value = withSequence(
-        withTiming(1.2, { duration: 100 }),
-        withSpring(1, { damping: 15 })
-      );
+    movesScale.value = withSequence(
+      withTiming(1.2, { duration: 100 }),
+      withSpring(1, { damping: 15 }),
+    );
 
-      if (checkWin(newBoard)) {
-        handleWin();
-      } else if (newMovesRemaining === 0) {
-        handleFail();
-      }
-    },
-    [
-      board,
-      movesRemaining,
-      level,
-      showWinModal,
-      showFailModal,
-      showGameOverModal,
-      hapticEnabled,
-      soundEnabled,
-      cellTapPlayer,
-    ]
-  );
+    if (checkWin(newBoard)) {
+      handleWin();
+    } else if (newMovesRemaining === 0) {
+      handleFail();
+    }
+  }
 
   async function handleFail() {
     if (hapticEnabled) {
@@ -445,7 +504,9 @@ export default function GameScreen() {
     if (hapticEnabled) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
-    playSoundEffect(level === TOTAL_LEVELS ? gameCompletePlayer : levelCompletePlayer);
+    playSoundEffect(
+      level === TOTAL_LEVELS ? gameCompletePlayer : levelCompletePlayer,
+    );
 
     await markLevelCompleted(level);
 
@@ -491,7 +552,7 @@ export default function GameScreen() {
     playSoundEffect(undoPlayer);
 
     setBoard(lastBoard);
-    setMovesRemaining(prev => prev + 1);
+    setMovesRemaining((prev) => prev + 1);
     movesUsedRef.current -= 1;
     setCanUndo(false);
   }
@@ -504,10 +565,10 @@ export default function GameScreen() {
     movesRemaining <= 5
       ? "#EF4444"
       : movesRemaining <= 10
-      ? "#F59E0B"
-      : isDark
-      ? Colors.dark.text
-      : Colors.light.text;
+        ? "#F59E0B"
+        : isDark
+          ? Colors.dark.text
+          : Colors.light.text;
 
   return (
     <ThemedView style={styles.container}>
@@ -525,17 +586,27 @@ export default function GameScreen() {
         </View>
 
         <Animated.View style={[styles.movesContainer, movesAnimatedStyle]}>
-          <ThemedText style={[styles.movesLabel, { fontFamily: Fonts.bodyMedium }]}>
+          <ThemedText
+            style={[styles.movesLabel, { fontFamily: Fonts.bodyMedium }]}
+          >
             Moves Remaining
           </ThemedText>
           <ThemedText
-            style={[styles.movesValue, { fontFamily: Fonts.displaySemiBold, color: movesColor }]}
+            style={[
+              styles.movesValue,
+              { fontFamily: Fonts.displaySemiBold, color: movesColor },
+            ]}
           >
             {movesRemaining}
           </ThemedText>
         </Animated.View>
 
-        <View style={[styles.gridContainer, { backgroundColor: isDark ? "#1a1a1a" : "#2a2a2a" }]}>
+        <View
+          style={[
+            styles.gridContainer,
+            { backgroundColor: isDark ? "#1a1a1a" : "#2a2a2a" },
+          ]}
+        >
           {board.map((row, rowIndex) => (
             <View key={rowIndex} style={styles.row}>
               {row.map((cellState, colIndex) => (
@@ -564,12 +635,16 @@ export default function GameScreen() {
           ))}
         </View>
 
-        <View style={[styles.bottomButtons, { bottom: insets.bottom + Spacing.xl }]}>
+        <View
+          style={[styles.bottomButtons, { bottom: insets.bottom + Spacing.xl }]}
+        >
           <Pressable
             style={[
               styles.actionButton,
               {
-                backgroundColor: isDark ? Colors.dark.cardSurface : Colors.light.cardSurface,
+                backgroundColor: isDark
+                  ? Colors.dark.cardSurface
+                  : Colors.light.cardSurface,
                 opacity: canUndo ? 1 : 0.5,
               },
             ]}
@@ -582,7 +657,12 @@ export default function GameScreen() {
               size={20}
               color={isDark ? Colors.dark.text : Colors.light.text}
             />
-            <ThemedText style={[styles.actionButtonText, { fontFamily: Fonts.bodyMedium }]}>
+            <ThemedText
+              style={[
+                styles.actionButtonText,
+                { fontFamily: Fonts.bodyMedium },
+              ]}
+            >
               Undo
             </ThemedText>
           </Pressable>
@@ -591,7 +671,9 @@ export default function GameScreen() {
             style={[
               styles.actionButton,
               {
-                backgroundColor: isDark ? Colors.dark.cardSurface : Colors.light.cardSurface,
+                backgroundColor: isDark
+                  ? Colors.dark.cardSurface
+                  : Colors.light.cardSurface,
               },
             ]}
             onPress={handleReset}
@@ -602,7 +684,12 @@ export default function GameScreen() {
               size={20}
               color={isDark ? Colors.dark.text : Colors.light.text}
             />
-            <ThemedText style={[styles.actionButtonText, { fontFamily: Fonts.bodyMedium }]}>
+            <ThemedText
+              style={[
+                styles.actionButtonText,
+                { fontFamily: Fonts.bodyMedium },
+              ]}
+            >
               Reset
             </ThemedText>
           </Pressable>
@@ -621,13 +708,19 @@ export default function GameScreen() {
             entering={FadeIn.duration(180)}
             style={[
               styles.modalContent,
-              { backgroundColor: isDark ? Colors.dark.cardSurface : Colors.light.cardSurface },
+              {
+                backgroundColor: isDark
+                  ? Colors.dark.cardSurface
+                  : Colors.light.cardSurface,
+              },
             ]}
           >
             <View style={styles.failIconRow}>
               <Feather name="x-circle" size={56} color="#EF4444" />
             </View>
-            <ThemedText style={[styles.winTitle, { fontFamily: Fonts.display }]}>
+            <ThemedText
+              style={[styles.winTitle, { fontFamily: Fonts.display }]}
+            >
               Out of Moves!
             </ThemedText>
             <View style={styles.livesRemainingRow}>
@@ -640,29 +733,50 @@ export default function GameScreen() {
                 />
               ))}
             </View>
-            <ThemedText style={[styles.movesUsedText, { fontFamily: Fonts.body }]}>
+            <ThemedText
+              style={[styles.movesUsedText, { fontFamily: Fonts.body }]}
+            >
               {lives} {lives === 1 ? "life" : "lives"} remaining
             </ThemedText>
             <View style={styles.modalButtons}>
-              <Pressable style={styles.primaryButton} onPress={handleTryAgain} testID="button-try-again">
+              <Pressable
+                style={styles.primaryButton}
+                onPress={handleTryAgain}
+                testID="button-try-again"
+              >
                 <LinearGradient
                   colors={["#6366F1", "#4F46E5"]}
                   style={styles.primaryButtonGradient}
                 >
                   <Feather name="rotate-ccw" size={20} color="#FFFFFF" />
-                  <ThemedText style={styles.primaryButtonText}>Try Again</ThemedText>
+                  <ThemedText style={styles.primaryButtonText}>
+                    Try Again
+                  </ThemedText>
                 </LinearGradient>
               </Pressable>
               <Pressable
                 style={[
                   styles.secondaryButton,
-                  { borderColor: isDark ? Colors.dark.border : Colors.light.border },
+                  {
+                    borderColor: isDark
+                      ? Colors.dark.border
+                      : Colors.light.border,
+                  },
                 ]}
                 onPress={handleQuitToHome}
                 testID="button-quit"
               >
-                <Feather name="home" size={18} color={isDark ? Colors.dark.text : Colors.light.text} />
-                <ThemedText style={[styles.secondaryButtonText, { fontFamily: Fonts.bodyMedium }]}>
+                <Feather
+                  name="home"
+                  size={18}
+                  color={isDark ? Colors.dark.text : Colors.light.text}
+                />
+                <ThemedText
+                  style={[
+                    styles.secondaryButtonText,
+                    { fontFamily: Fonts.bodyMedium },
+                  ]}
+                >
                   Quit to Home
                 </ThemedText>
               </Pressable>
@@ -683,38 +797,65 @@ export default function GameScreen() {
             entering={FadeIn.duration(180)}
             style={[
               styles.modalContent,
-              { backgroundColor: isDark ? Colors.dark.cardSurface : Colors.light.cardSurface },
+              {
+                backgroundColor: isDark
+                  ? Colors.dark.cardSurface
+                  : Colors.light.cardSurface,
+              },
             ]}
           >
             <View style={styles.failIconRow}>
               <Feather name="alert-circle" size={56} color="#EF4444" />
             </View>
-            <ThemedText style={[styles.gameOverTitle, { fontFamily: Fonts.display }]}>
+            <ThemedText
+              style={[styles.gameOverTitle, { fontFamily: Fonts.display }]}
+            >
               Game Over
             </ThemedText>
-            <ThemedText style={[styles.movesUsedText, { fontFamily: Fonts.body }]}>
-              You've used all your lives. Better luck next time!
+            <ThemedText
+              style={[styles.movesUsedText, { fontFamily: Fonts.body }]}
+            >
+              You&apos;ve used all your lives. Better luck next time!
             </ThemedText>
             <View style={styles.modalButtons}>
-              <Pressable style={styles.primaryButton} onPress={handlePlayAgain} testID="button-play-again">
+              <Pressable
+                style={styles.primaryButton}
+                onPress={handlePlayAgain}
+                testID="button-play-again"
+              >
                 <LinearGradient
                   colors={["#6366F1", "#4F46E5"]}
                   style={styles.primaryButtonGradient}
                 >
                   <Feather name="play" size={20} color="#FFFFFF" />
-                  <ThemedText style={styles.primaryButtonText}>Play Again</ThemedText>
+                  <ThemedText style={styles.primaryButtonText}>
+                    Play Again
+                  </ThemedText>
                 </LinearGradient>
               </Pressable>
               <Pressable
                 style={[
                   styles.secondaryButton,
-                  { borderColor: isDark ? Colors.dark.border : Colors.light.border },
+                  {
+                    borderColor: isDark
+                      ? Colors.dark.border
+                      : Colors.light.border,
+                  },
                 ]}
                 onPress={handleQuitToHome}
                 testID="button-go-home"
               >
-                <Feather name="home" size={18} color={isDark ? Colors.dark.text : Colors.light.text} />
-                <ThemedText style={[styles.secondaryButtonText, { fontFamily: Fonts.bodyMedium }]}>
+                <Feather
+                  name="home"
+                  size={18}
+                  color={isDark ? Colors.dark.text : Colors.light.text}
+                />
+                <ThemedText
+                  style={[
+                    styles.secondaryButtonText,
+                    { fontFamily: Fonts.bodyMedium },
+                  ]}
+                >
                   Return to Home
                 </ThemedText>
               </Pressable>
@@ -734,13 +875,19 @@ export default function GameScreen() {
             entering={FadeIn.duration(180)}
             style={[
               styles.modalContent,
-              { backgroundColor: isDark ? Colors.dark.cardSurface : Colors.light.cardSurface },
+              {
+                backgroundColor: isDark
+                  ? Colors.dark.cardSurface
+                  : Colors.light.cardSurface,
+              },
             ]}
           >
             <Image source={celebrationImage} style={styles.celebrationImage} />
             <ThemedText
               style={[
-                level === TOTAL_LEVELS ? styles.completionTitle : styles.winTitle,
+                level === TOTAL_LEVELS
+                  ? styles.completionTitle
+                  : styles.winTitle,
                 { fontFamily: Fonts.display },
               ]}
             >
@@ -749,46 +896,73 @@ export default function GameScreen() {
                 : "Puzzle Solved!"}
             </ThemedText>
 
-            <ThemedText style={[styles.movesUsedText, { fontFamily: Fonts.body }]}>
+            <ThemedText
+              style={[styles.movesUsedText, { fontFamily: Fonts.body }]}
+            >
               Moves used: {movesUsedRef.current} / {config.moves}
             </ThemedText>
 
             <View style={styles.modalButtons}>
               {level < TOTAL_LEVELS ? (
-                <Pressable style={styles.primaryButton} onPress={handleNextLevel} testID="button-next-level">
+                <Pressable
+                  style={styles.primaryButton}
+                  onPress={handleNextLevel}
+                  testID="button-next-level"
+                >
                   <LinearGradient
                     colors={["#6366F1", "#4F46E5"]}
                     style={styles.primaryButtonGradient}
                   >
-                    <ThemedText style={styles.primaryButtonText}>Next Level</ThemedText>
+                    <ThemedText style={styles.primaryButtonText}>
+                      Next Level
+                    </ThemedText>
                     <Feather name="arrow-right" size={20} color="#FFFFFF" />
                   </LinearGradient>
                 </Pressable>
               ) : (
-                <Pressable style={styles.primaryButton} onPress={handlePlayAgain} testID="button-final-play-again">
+                <Pressable
+                  style={styles.primaryButton}
+                  onPress={handlePlayAgain}
+                  testID="button-final-play-again"
+                >
                   <LinearGradient
                     colors={["#6366F1", "#4F46E5"]}
                     style={styles.primaryButtonGradient}
                   >
                     <Feather name="play" size={20} color="#FFFFFF" />
-                    <ThemedText style={styles.primaryButtonText}>Play Again</ThemedText>
+                    <ThemedText style={styles.primaryButtonText}>
+                      Play Again
+                    </ThemedText>
                   </LinearGradient>
                 </Pressable>
               )}
               <Pressable
                 style={[
                   styles.secondaryButton,
-                  { borderColor: isDark ? Colors.dark.border : Colors.light.border },
+                  {
+                    borderColor: isDark
+                      ? Colors.dark.border
+                      : Colors.light.border,
+                  },
                 ]}
-                onPress={level === TOTAL_LEVELS ? handleQuitToHome : handleReplay}
-                testID={level === TOTAL_LEVELS ? "button-final-home" : "button-replay"}
+                onPress={
+                  level === TOTAL_LEVELS ? handleQuitToHome : handleReplay
+                }
+                testID={
+                  level === TOTAL_LEVELS ? "button-final-home" : "button-replay"
+                }
               >
                 <Feather
                   name={level === TOTAL_LEVELS ? "home" : "rotate-ccw"}
                   size={18}
                   color={isDark ? Colors.dark.text : Colors.light.text}
                 />
-                <ThemedText style={[styles.secondaryButtonText, { fontFamily: Fonts.bodyMedium }]}>
+                <ThemedText
+                  style={[
+                    styles.secondaryButtonText,
+                    { fontFamily: Fonts.bodyMedium },
+                  ]}
+                >
                   {level === TOTAL_LEVELS ? "Return to Home" : "Replay"}
                 </ThemedText>
               </Pressable>

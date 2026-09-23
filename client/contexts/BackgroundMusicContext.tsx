@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/immutability -- Expo Audio players expose imperative mutable controls. */
 import React, {
   createContext,
   useCallback,
@@ -23,7 +24,8 @@ interface BackgroundMusicContextValue {
   refreshMusicSettings: () => Promise<void>;
 }
 
-const BackgroundMusicContext = createContext<BackgroundMusicContextValue | null>(null);
+const BackgroundMusicContext =
+  createContext<BackgroundMusicContextValue | null>(null);
 
 function normalizeVolume(value: number) {
   return Math.max(0, Math.min(1, value));
@@ -50,7 +52,7 @@ export function BackgroundMusicProvider({ children }: PropsWithChildren) {
         musicPlayer.pause();
       }
     },
-    [musicPlayer]
+    [musicPlayer],
   );
 
   const refreshMusicSettings = useCallback(async () => {
@@ -72,7 +74,7 @@ export function BackgroundMusicProvider({ children }: PropsWithChildren) {
       audioWelcomeCompletedRef.current = true;
       applyMusicSettings(enabled, volume);
     },
-    [applyMusicSettings]
+    [applyMusicSettings],
   );
 
   const ensureMusicPlaying = useCallback(() => {
@@ -98,13 +100,16 @@ export function BackgroundMusicProvider({ children }: PropsWithChildren) {
 
     void initializeAudio();
 
-    const appStateSubscription = AppState.addEventListener("change", (state) => {
-      if (state === "active") {
-        void refreshMusicSettings();
-      } else {
-        musicPlayer.pause();
-      }
-    });
+    const appStateSubscription = AppState.addEventListener(
+      "change",
+      (state) => {
+        if (state === "active") {
+          void refreshMusicSettings();
+        } else {
+          musicPlayer.pause();
+        }
+      },
+    );
 
     return () => {
       active = false;
@@ -132,7 +137,9 @@ export function useBackgroundMusic() {
   const context = useContext(BackgroundMusicContext);
 
   if (!context) {
-    throw new Error("useBackgroundMusic must be used within BackgroundMusicProvider");
+    throw new Error(
+      "useBackgroundMusic must be used within BackgroundMusicProvider",
+    );
   }
 
   return context;

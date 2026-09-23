@@ -160,12 +160,6 @@ export default function LevelSelectScreen() {
   const cardWidth =
     (width - HORIZONTAL_PADDING * 2 - CARD_GAP * (COLUMNS - 1)) / COLUMNS;
 
-  useEffect(() => {
-    loadData();
-    const unsubscribe = navigation.addListener("focus", loadData);
-    return unsubscribe;
-  }, [navigation]);
-
   async function loadData() {
     const completed = await getCompletedLevels();
     const current = await getCurrentLevel();
@@ -174,6 +168,14 @@ export default function LevelSelectScreen() {
     setCurrentLevel(current);
     setHapticEnabled(settings.hapticEnabled);
   }
+
+  useEffect(() => {
+    // AsyncStorage hydration updates state only after its reads resolve.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadData();
+    const unsubscribe = navigation.addListener("focus", loadData);
+    return unsubscribe;
+  }, [navigation]);
 
   const handleLevelPress = useCallback(
     (level: number) => {
