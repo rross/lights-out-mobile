@@ -84,6 +84,14 @@ export const Typography = {
     fontSize: 24,
     fontWeight: "500" as const,
   },
+  h3: {
+    fontSize: 20,
+    fontWeight: "500" as const,
+  },
+  h4: {
+    fontSize: 18,
+    fontWeight: "500" as const,
+  },
   bodyLarge: {
     fontSize: 18,
     fontWeight: "500" as const,
@@ -99,6 +107,10 @@ export const Typography = {
   small: {
     fontSize: 12,
     fontWeight: "400" as const,
+  },
+  link: {
+    fontSize: 16,
+    fontWeight: "500" as const,
   },
 };
 
